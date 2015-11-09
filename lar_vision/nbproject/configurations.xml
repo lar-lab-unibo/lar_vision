@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configurationDescriptor version="97">
+  <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
+    <df root=".." name="0">
+      <df name="src">
+        <df name="nodes">
+          <in>testing_node.cpp</in>
+        </df>
+        <df name="segmentation">
+          <in>HighMap.cpp</in>
+        </df>
+      </df>
+    </df>
+    <logicalFolder name="src" displayName="src" projectFiles="true" root="../..">
+      <logicalFolder name="lar_tools" displayName="lar_tools" projectFiles="true">
+        <logicalFolder name="src" displayName="src" projectFiles="true">
+          <logicalFolder name="lar_tool_utils"
+                         displayName="lar_tool_utils"
+                         projectFiles="true">
+            <itemPath>../../lar_tools/src/lar_tool_utils/UDPNode.cpp</itemPath>
+          </logicalFolder>
+          <logicalFolder name="nodes" displayName="nodes" projectFiles="true">
+            <logicalFolder name="test" displayName="test" projectFiles="true">
+              <itemPath>../../lar_tools/src/nodes/test/testing_node.cpp</itemPath>
+            </logicalFolder>
+          </logicalFolder>
+        </logicalFolder>
+      </logicalFolder>
+      <logicalFolder name="trimod_gripper"
+                     displayName="trimod_gripper"
+                     projectFiles="true">
+        <logicalFolder name="src" displayName="src" projectFiles="true">
+          <itemPath>../../trimod_gripper/src/lwr_manual_photographer.cpp</itemPath>
+          <itemPath>../../trimod_gripper/src/lwr_udp_to_controllers.cpp</itemPath>
+        </logicalFolder>
+      </logicalFolder>
+    </logicalFolder>
+    <logicalFolder name="ExternalFiles"
+                   displayName="Important Files"
+                   projectFiles="false"
+                   kind="IMPORTANT_FILES_FOLDER">
+      <itemPath>../CMakeLists.txt</itemPath>
+      <itemPath>../Makefile</itemPath>
+      <itemPath>nbproject/private/launcher.properties</itemPath>
+    </logicalFolder>
+  </logicalFolder>
+  <sourceFolderFilter>^(nbproject)$</sourceFolderFilter>
+  <sourceRootList>
+    <Elem>..</Elem>
+  </sourceRootList>
+  <projectmakefile>../Makefile</projectmakefile>
+  <confs>
+    <conf name="Default" type="0">
+      <toolsSet>
+        <compilerSet>default</compilerSet>
+        <dependencyChecking>false</dependencyChecking>
+        <rebuildPropChanged>false</rebuildPropChanged>
+      </toolsSet>
+      <flagsDictionary>
+        <element flagsID="0" commonFlags="-fPIC"/>
+      </flagsDictionary>
+      <codeAssistance>
+      </codeAssistance>
+      <makefileType>
+        <makeTool>
+          <buildCommandWorkingDir>../../../build</buildCommandWorkingDir>
+          <buildCommand>${MAKE} -f Makefile</buildCommand>
+          <cleanCommand>${MAKE} -f Makefile clean</cleanCommand>
+          <executablePath></executablePath>
+          <ccTool>
+            <preprocessorList>
+              <Elem>ROSCONSOLE_BACKEND_LOG4CXX</Elem>
+              <Elem>ROS_BUILD_SHARED_LIBS=1</Elem>
+              <Elem>ROS_PACKAGE_NAME="lar_vision"</Elem>
+            </preprocessorList>
+          </ccTool>
+        </makeTool>
+        <preBuild>
+          <preBuildCommandWorkingDir>../../../build</preBuildCommandWorkingDir>
+          <preBuildCommand>cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Debug -DCMAKE_C_COMPILER=${IDE_CC} -DCMAKE_CXX_COMPILER=${IDE_CXX} -DCMAKE_C_FLAGS_DEBUG="-g3 -gdwarf-2" -DCMAKE_CXX_FLAGS_DEBUG="-g3 -gdwarf-2" -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCATKIN_DEVEL_SPACE=../devel  -DCMAKE_INSTALL_PREFIX=../install  .</preBuildCommand>
+        </preBuild>
+      </makefileType>
+      <item path="../../lar_tools/src/lar_tool_utils/UDPNode.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+        <ccTool flags="0">
+        </ccTool>
+      </item>
+      <item path="../../lar_tools/src/nodes/test/testing_node.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../trimod_gripper/src/lwr_manual_photographer.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../trimod_gripper/src/lwr_udp_to_controllers.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../src/nodes/testing_node.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../src/segmentation/HighMap.cpp" ex="false" tool="1" flavor2="4">
+        <ccTool flags="0">
+        </ccTool>
+      </item>
+      <folder path="0">
+        <ccTool>
+          <incDir>
+            <pElem>/usr/include/vtk-5.8</pElem>
+            <pElem>/usr/local/include/pcl-1.8</pElem>
+            <pElem>/usr/include/eigen3</pElem>
+            <pElem>/usr/include/ni</pElem>
+            <pElem>/usr/local/include/opencv</pElem>
+            <pElem>/usr/local/include</pElem>
+            <pElem>../../lar_tools/include</pElem>
+            <pElem>../../lar_tools/include/lar_tool_utils</pElem>
+            <pElem>/opt/ros/indigo/include</pElem>
+            <pElem>/usr/include/opencv</pElem>
+            <pElem>/usr/include/pcl-1.7</pElem>
+            <pElem>../include/lar_vision</pElem>
+            <pElem>../include/lar_vision/commons</pElem>
+            <pElem>../include/lar_vision/segmentation</pElem>
+            <pElem>../../../build/lar_vision</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>DISABLE_DAVIDSDK</Elem>
+            <Elem>DISABLE_ENSENSO</Elem>
+            <Elem>DISABLE_OPENNI2</Elem>
+            <Elem>DISABLE_PCAP</Elem>
+            <Elem>DISABLE_PNG</Elem>
+            <Elem>DISABLE_QHULL</Elem>
+            <Elem>EIGEN_USE_NEW_STDVECTOR</Elem>
+            <Elem>EIGEN_YES_I_KNOW_SPARSE_MODULE_IS_NOT_STABLE_YET</Elem>
+            <Elem>FLANN_STATIC</Elem>
+          </preprocessorList>
+        </ccTool>
+      </folder>
+      <folder path="0/src/segmentation">
+        <ccTool>
+          <preprocessorList>
+            <Elem>lar_vision_commons_EXPORTS</Elem>
+          </preprocessorList>
+        </ccTool>
+      </folder>
+      <folder path="src">
+        <ccTool>
+          <preprocessorList>
+            <Elem>ROS_PACKAGE_NAME="lar_tools"</Elem>
+          </preprocessorList>
+        </ccTool>
+      </folder>
+      <folder path="src/lar_tools">
+        <ccTool>
+          <incDir>
+            <pElem>/opt/ros/indigo/include</pElem>
+            <pElem>/usr/include/eigen3</pElem>
+            <pElem>../../lar_tools/EIGEN3_INCLUDE_DIR</pElem>
+            <pElem>../../lar_tools/include</pElem>
+            <pElem>../../lar_tools/include/lar_tool_utils</pElem>
+            <pElem>../../../build/lar_tools</pElem>
+          </incDir>
+        </ccTool>
+      </folder>
+      <folder path="src/lar_tools/src/lar_tool_utils">
+        <ccTool>
+          <preprocessorList>
+            <Elem>lar_tools_EXPORTS</Elem>
+          </preprocessorList>
+        </ccTool>
+      </folder>
+      <folder path="src/trimod_gripper">
+        <ccTool>
+          <incDir>
+            <pElem>/usr/include/vtk-5.8</pElem>
+            <pElem>/usr/local/include/pcl-1.8</pElem>
+            <pElem>/usr/include/eigen3</pElem>
+            <pElem>/usr/include/ni</pElem>
+            <pElem>/usr/local/include/opencv</pElem>
+            <pElem>/usr/local/include</pElem>
+            <pElem>../../lar_tools/include</pElem>
+            <pElem>../../lar_tools/include/lar_tool_utils</pElem>
+            <pElem>/opt/ros/indigo/include</pElem>
+            <pElem>../../../devel/include</pElem>
+            <pElem>../../kuka-lwr/lwr_controllers/include</pElem>
+            <pElem>/usr/include/opencv</pElem>
+            <pElem>/usr/include/pcl-1.7</pElem>
+            <pElem>../../trimod_gripper/cmake/Modules</pElem>
+            <pElem>../../trimod_gripper/include</pElem>
+            <pElem>../../trimod_gripper/include/utils</pElem>
+            <pElem>../../../build/trimod_gripper</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>DISABLE_DAVIDSDK</Elem>
+            <Elem>DISABLE_ENSENSO</Elem>
+            <Elem>DISABLE_OPENNI2</Elem>
+            <Elem>DISABLE_PCAP</Elem>
+            <Elem>DISABLE_PNG</Elem>
+            <Elem>DISABLE_QHULL</Elem>
+            <Elem>EIGEN_USE_NEW_STDVECTOR</Elem>
+            <Elem>EIGEN_YES_I_KNOW_SPARSE_MODULE_IS_NOT_STABLE_YET</Elem>
+            <Elem>FLANN_STATIC</Elem>
+            <Elem>ROS_PACKAGE_NAME="trimod_gripper"</Elem>
+          </preprocessorList>
+        </ccTool>
+      </folder>
+    </conf>
+  </confs>
+</configurationDescriptor>

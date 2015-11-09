@@ -1,0 +1,38 @@
+[  2%] Building CXX object lar_tools/CMakeFiles/lar_tools.dir/src/lar_tool_utils/UDPNode.cpp.o
+Linking CXX shared library /home/daniele/Desktop/pippo/devel/lib/liblar_tools.so
+[  2%] Built target lar_tools
+[  4%] Building CXX object lar_tools/CMakeFiles/testing_node.dir/src/nodes/test/testing_node.cpp.o
+Linking CXX executable /home/daniele/Desktop/pippo/devel/lib/lar_tools/testing_node
+[  4%] Built target testing_node
+ERROR: ld.so: object 'libBuildTrace.so' from LD_PRELOAD cannot be preloaded (cannot open shared object file): ignored.
+[  4%] Built target _lwr_controllers_generate_messages_check_deps_MultiPriorityTask
+[  4%] Built target geometry_msgs_generate_messages_cpp
+[  4%] Built target std_msgs_generate_messages_cpp
+ERROR: ld.so: object 'libBuildTrace.so' from LD_PRELOAD cannot be preloaded (cannot open shared object file): ignored.
+[  4%] Built target _lwr_controllers_generate_messages_check_deps_PoseRPY
+ERROR: ld.so: object 'libBuildTrace.so' from LD_PRELOAD cannot be preloaded (cannot open shared object file): ignored.
+[  4%] Built target _lwr_controllers_generate_messages_check_deps_RPY
+[  7%] Generating C++ code from lwr_controllers/RPY.msg
+ERROR: ld.so: object 'libBuildTrace.so' from LD_PRELOAD cannot be preloaded (cannot open shared object file): ignored.
+[  9%] Generating C++ code from lwr_controllers/MultiPriorityTask.msg
+ERROR: ld.so: object 'libBuildTrace.so' from LD_PRELOAD cannot be preloaded (cannot open shared object file): ignored.
+[ 11%] Generating C++ code from lwr_controllers/PoseRPY.msg
+ERROR: ld.so: object 'libBuildTrace.so' from LD_PRELOAD cannot be preloaded (cannot open shared object file): ignored.
+[ 11%] Built target lwr_controllers_generate_messages_cpp
+[ 11%] Built target lwr_controllers_gencpp
+Scanning dependencies of target lwr_controllers
+[ 14%] Building CXX object kuka-lwr/lwr_controllers/CMakeFiles/lwr_controllers.dir/src/joint_impedance_controller.cpp.o
+[ 16%] Building CXX object kuka-lwr/lwr_controllers/CMakeFiles/lwr_controllers.dir/src/inverse_dynamics_controller.cpp.o
+[ 19%] Building CXX object kuka-lwr/lwr_controllers/CMakeFiles/lwr_controllers.dir/src/computed_torque_controller.cpp.o
+[ 21%] Building CXX object kuka-lwr/lwr_controllers/CMakeFiles/lwr_controllers.dir/src/one_task_inverse_kinematics.cpp.o
+[ 23%] Building CXX object kuka-lwr/lwr_controllers/CMakeFiles/lwr_controllers.dir/src/multi_task_priority_inverse_kinematics.cpp.o
+[ 26%] Building CXX object kuka-lwr/lwr_controllers/CMakeFiles/lwr_controllers.dir/src/multi_task_priority_inverse_dynamics.cpp.o
+[ 28%] Building CXX object kuka-lwr/lwr_controllers/CMakeFiles/lwr_controllers.dir/src/minimum_effort_inverse_dynamics.cpp.o
+[ 30%] Building CXX object kuka-lwr/lwr_controllers/CMakeFiles/lwr_controllers.dir/src/backstepping_controller.cpp.o
+[ 33%] Building CXX object kuka-lwr/lwr_controllers/CMakeFiles/lwr_controllers.dir/src/dynamic_sliding_mode_controller.cpp.o
+[ 35%] Building CXX object kuka-lwr/lwr_controllers/CMakeFiles/lwr_controllers.dir/src/dynamic_sliding_mode_controller_task_space.cpp.o
+[ 38%] Building CXX object kuka-lwr/lwr_controllers/CMakeFiles/lwr_controllers.dir/src/one_task_inverse_dynamics_jl.cpp.o
+[ 40%] Building CXX object kuka-lwr/lwr_controllers/CMakeFiles/lwr_controllers.dir/src/gravity_compensation.cpp.o
+[ 42%] Building CXX object kuka-lwr/lwr_controllers/CMakeFiles/lwr_controllers.dir/src/full_control_simple.cpp.o
+make[2]: *** [kuka-lwr/lwr_controllers/CMakeFiles/lwr_controllers.dir/src/full_control_simple.cpp.o] Terminated
+make[1]: *** [kuka-lwr/lwr_controllers/CMakeFiles/lwr_controllers.dir/all] Terminated
