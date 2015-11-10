@@ -10,15 +10,15 @@
  *
  * Created on November 9, 2015, 12:00 PM
  */
+#include "lar_tools.h"
 #include "lar_vision_commons.h"
 
 #include <pcl/features/normal_3d.h>
 #include <pcl/segmentation/extract_clusters.h>
 #include <pcl/features/normal_3d_omp.h>
+#include <pcl/features/shot_lrf.h>
 
 namespace lar_vision {
-
-    
 
     void
     display_cloud(pcl::visualization::PCLVisualizer &viewer, pcl::PointCloud<PointType>::Ptr& cloud, int r, int g, int b, int size, std::string name) {
@@ -109,6 +109,89 @@ namespace lar_vision {
         ec.setInputCloud(cloud);
         ec.extract(cluster_indices);
 
+    }
+
+    void
+    compute_centroid_local_rf(pcl::PointCloud<PointType>::Ptr& cloud, pcl::ReferenceFrame& rf, int type) {
+        Eigen::Vector4f centroid;
+        pcl::compute3DCentroid(*cloud, centroid);
+        pcl::PointCloud<PointType>::Ptr centroid_cloud(new pcl::PointCloud<PointType>());
+        PointType p_centroid;
+        p_centroid.x = centroid(0);
+        p_centroid.y = centroid(1);
+        p_centroid.z = centroid(2);
+        centroid_cloud->points.push_back(p_centroid);
+
+        pcl::PointCloud<pcl::ReferenceFrame>::Ptr rf_cloud(new pcl::PointCloud<pcl::ReferenceFrame>());
+
+        pcl::SHOTLocalReferenceFrameEstimation<PointType, pcl::ReferenceFrame> est;
+        est.setInputCloud(centroid_cloud);
+        est.setSearchSurface(cloud);
+        est.setRadiusSearch(20000.0f);
+        est.compute(*rf_cloud);
+
+        rf = rf_cloud->points[0];
+    }
+
+    void
+    compute_centroid_local_rf(pcl::PointCloud<PointType>::Ptr& cloud, pcl::ReferenceFrame& rf, Eigen::Vector3f& gravity, int type) {
+        compute_centroid_local_rf(cloud, rf, type);
+        Eigen::Matrix4f erf;
+        convert_rf_to_eigen_4x4(rf, erf);
+        Eigen::Vector3f ax;
+        Eigen::Vector3f ay;
+        Eigen::Vector3f az;
+        ax << erf(0, 0), erf(1, 0), erf(2, 0);
+        ay << erf(0, 1), erf(1, 1), erf(2, 1);
+        az << erf(0, 2), erf(1, 2), erf(2, 2);
+        float m_ax = fabs(ax.dot(gravity));
+        float m_ay = fabs(ay.dot(gravity));
+        float m_az = fabs(az.dot(gravity));
+
+        Eigen::Matrix4f rot;
+        float sign = 1.0f;
+        if (m_ay > m_ax && m_ay > m_az) {
+            // Y
+            sign = ay.dot(gravity) > 0 ? -1 : 1;
+            lar_tools::rotation_matrix_4x4('x', sign * M_PI / 2.0f, rot);
+        } else if (m_az > m_ax && m_az > m_ay) {
+            // Z
+            sign = az.dot(gravity) > 0 ? 1 : -1;
+            rot << 1, 0, 0, 0, 0, sign, 0, 0, 0, 0, sign, 0, 0, 0, 0, 1;
+            //            lar_tools::rotation_matrix_4x4('x', 0, rot);
+        } else {
+            // X
+            sign = ax.dot(gravity) > 0 ? 1 : -1;
+            lar_tools::rotation_matrix_4x4('y', sign * M_PI / 2.0f, rot);
+        }
+        erf = erf*rot;
+        convert_rf_to_eigen_4x4(rf, erf, true);
+    }
+
+    void
+    convert_rf_to_eigen_4x4(pcl::ReferenceFrame& rf, Eigen::Matrix4f& vector, bool reverse) {
+        if (!reverse) {
+
+            vector <<
+                    rf.x_axis[0], rf.y_axis[0], rf.z_axis[0], 0,
+                    rf.x_axis[1], rf.y_axis[1], rf.z_axis[1], 0,
+                    rf.x_axis[2], rf.y_axis[2], rf.z_axis[2], 0,
+                    0, 0, 0, 1;
+
+        } else {
+            rf.x_axis[0] = vector(0, 0);
+            rf.x_axis[1] = vector(1, 0);
+            rf.x_axis[2] = vector(2, 0);
+
+            rf.y_axis[0] = vector(0, 1);
+            rf.y_axis[1] = vector(1, 1);
+            rf.y_axis[2] = vector(2, 1);
+
+            rf.z_axis[0] = vector(0, 2);
+            rf.z_axis[1] = vector(1, 2);
+            rf.z_axis[2] = vector(2, 2);
+
+        }
     }
 
 }

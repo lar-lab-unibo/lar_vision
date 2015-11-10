@@ -25,7 +25,7 @@ namespace lar_vision {
 
     typedef pcl::PointXYZRGBA PointType;
     typedef pcl::Normal NormalType;
-    
+
     /**
      * Palette of colors
      */
@@ -48,7 +48,7 @@ namespace lar_vision {
             return colors[index];
         }
     };
-    
+
 
     /**
      * Displays Cloud in viewer
@@ -90,6 +90,24 @@ namespace lar_vision {
      */
     void
     draw_reference_frame(pcl::visualization::PCLVisualizer &viewer, Eigen::Vector3f center, pcl::ReferenceFrame rf, float size, std::string name);
+
+    /**
+     */
+    void
+    compute_centroid_local_rf(pcl::PointCloud<PointType>::Ptr& cloud, pcl::ReferenceFrame& rf, int type = -1);
+    
+    /**
+     */
+    void
+    compute_centroid_local_rf(pcl::PointCloud<PointType>::Ptr& cloud, pcl::ReferenceFrame& rf, Eigen::Vector3f& gravity, int type = -1);
+
+    /**
+     * 
+     * @param rf
+     * @param vector
+     */
+    void
+    convert_rf_to_eigen_4x4(pcl::ReferenceFrame& rf, Eigen::Matrix4f& vector, bool reverse = false);
 }
 
 #endif /* LAR_VISION_COMMONS_H */

@@ -52,6 +52,8 @@ include_directories(
   include/${PROJECT_NAME}/
   include/${PROJECT_NAME}/commons
   include/${PROJECT_NAME}/segmentation
+  include/${PROJECT_NAME}/grasping
+  include/${PROJECT_NAME}/grasping/grippers
 )
 
 
@@ -59,6 +61,9 @@ include_directories(
 add_library(lar_vision_commons
         src/commons/lar_vision_commons.cpp
         src/segmentation/HighMap.cpp
+        src/grasping/Slicer.cpp
+        src/grasping/Grasper.cpp
+        src/grasping/grippers/GraspingGripper.cpp
 )
 target_link_libraries (lar_vision_commons ${catkin_LIBRARIES} ${OpenCV_LIBS} ${PCL_LIBRARIES} lar_tools)
 
@@ -69,5 +74,9 @@ target_link_libraries (lar_vision_commons ${catkin_LIBRARIES} ${OpenCV_LIBS} ${P
 # TESTING NODE
 add_executable(${PROJECT_NAME}_testing_node  src/nodes/testing_node.cpp)
 target_link_libraries(${PROJECT_NAME}_testing_node ${catkin_LIBRARIES} lar_vision_commons lar_tools)
+
+# height_map_segmentation_rf
+add_executable(${PROJECT_NAME}_height_map_segmentation_rf  src/nodes/height_map_segmentation_rf.cpp)
+target_link_libraries(${PROJECT_NAME}_height_map_segmentation_rf ${catkin_LIBRARIES} lar_vision_commons lar_tools)
 
 

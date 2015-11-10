@@ -1,153 +1,188 @@
+
 #include <ros/ros.h>
 
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
 
-#include <boost/thread.hpp>
-#include <boost/date_time.hpp>
+#include <cstdlib>
 
+#include <opencv2/opencv.hpp>
 #include <pcl/point_types.h>
 #include <pcl/io/pcd_io.h>
-#include <pcl/visualization/pcl_visualizer.h>
-#include <pcl/filters/voxel_grid.h>
-#include <pcl-1.8/pcl/common/transforms.h>
+#include <pcl/common/io.h>
+#include <pcl/surface/concave_hull.h>
+#include <pcl-1.8/pcl/impl/point_types.hpp>
+#include <bits/stl_vector.h>
+
 
 #include "lar_tools.h"
 #include "lar_vision_commons.h"
 #include "segmentation/HighMap.h"
+#include "grasping/Slicer.h"
+#include "grasping/Grasper.h"
+#include "grasping/grippers/GraspingGripper.h"
 
-using namespace lar_tools;
+#define GRIPPER_STATUS_PARALLEL 0
+#define GRIPPER_STATUS_TRIPOD 1
+#define GRIPPER_STATUS_DUAL 2
+
+using namespace std;
 using namespace lar_vision;
 
-void load_transform(std::string path, Eigen::Matrix4f& t) {
-    //LOAD MATRIX
-    ifstream myReadFile;
-    myReadFile.open(path.c_str());
-    char output[100];
-    if (myReadFile.is_open()) {
-        for (int i = 0; i < 4; i++) {
-            for (int j = 0; j < 4; j++) {
-                myReadFile >> output;
-                t(i, j) = atof(output);
-            }
-        }
-    } else {
-        std::cout << t << std::endl;
+cv::Mat img;
+std::vector<cv::Point2f> points;
+cv::Point2f center;
+
+std::string wname = "window";
+double w;
+double h;
+double scale = 4000.0f;
+double alpha = 0.006f;
+double delta = 0.01f;
+double eps = 0.005f;
+int bypass = 0;
+pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
+pcl::PointCloud<pcl::PointXYZ>::Ptr hull(new pcl::PointCloud<pcl::PointXYZ>);
+
+std::vector<cv::Point2f> refined_points;
+std::vector<cv::Point2f> normals;
+
+void pointsToCloud(std::vector<cv::Point2f>& points, pcl::PointCloud<pcl::PointXYZ>::Ptr& cloud, bool reverse = false) {
+    cloud->points.clear();
+    for (int i = 0; i < points.size(); i++) {
+        pcl::PointXYZ pt;
+        pt.x = points[i].x / scale;
+        pt.y = points[i].y / scale;
+        cloud->points.push_back(pt);
     }
-    myReadFile.close();
 }
 
-/** MAIN NODE **/
-int
-main(int argc, char** argv) {
+void drawArrow(cv::Mat& img, cv::Point2f p, cv::Point2f q, cv::Scalar color, int thickness = 1, int arrowMagnitude = 19, int line_type = 8, int shift = 0) {
+    //Draw the principle line
+    cv::line(img, p, q, color, thickness);
+    const double PI = 3.141592653;
+    //compute the angle alpha
+    double angle = atan2((double) p.y - q.y, (double) p.x - q.x);
+    //compute the coordinates of the first segment
+    p.x = (int) (q.x + arrowMagnitude * cos(angle + PI / 4));
+    p.y = (int) (q.y + arrowMagnitude * sin(angle + PI / 4));
+    //Draw the first segment
+    cv::line(img, p, q, color, thickness);
+    //compute the coordinates of the second segment
+    p.x = (int) (q.x + arrowMagnitude * cos(angle - PI / 4));
+    p.y = (int) (q.y + arrowMagnitude * sin(angle - PI / 4));
+    //Draw the second segment
+    cv::line(img, p, q, color, thickness);
+}
+
+void update() {
+
+    img = cv::Mat::zeros(h, w, CV_32FC3);
+    pointsToCloud(points, cloud);
+
+    Grasper grasper(alpha, delta);
+    grasper.setCloud(cloud);
+
+    for (int i = 0; i < points.size(); i++) {
+        cv::circle(img, points[i], 5.0f, cv::Scalar(0, 0, 255), -1);
+    }
+
+
+    for (int i = 0; i < grasper.points.size(); i++) {
+        cv::Point2f p(grasper.points[i].p(0) * scale, grasper.points[i].p(1) * scale);
+        cv::circle(img, p, 3.0f, cv::Scalar(255, 255, 255), -1);
+    }
+    cv::circle(img, cv::Point2f(grasper.centroid(0) * scale, grasper.centroid(1) * scale), 10.0f, cv::Scalar(0, 0, 255), 3);
+
+
+    GraspingGripper gripper;
+
+    std::vector<int> grasp_indices;
+    gripper.find(grasper.points, grasp_indices, bypass);
+    bool valid = grasper.isValidPlanarConfiguration(grasp_indices);
+
+    for (int i = 0; i < grasp_indices.size(); i++) {
+        cv::Point2f point(grasper.points[grasp_indices[i]].p(0) * scale, grasper.points[grasp_indices[i]].p(1) * scale);
+        cv::Point2f normal(grasper.points[grasp_indices[i]].normal(0), grasper.points[grasp_indices[i]].normal(1));
+
+        if (i == 2) {
+            cv::circle(img, point, 15.0f, cv::Scalar(255, 0, 255), 4);
+            if (valid) {
+                drawArrow(img, point, point + normal * 100, cv::Scalar(0, 255, 0), 2);
+            }else{
+                drawArrow(img, point, point + normal * 100, cv::Scalar(0, 0, 255), 2);
+            }
+        } else {
+            cv::circle(img, point, 15.0f, cv::Scalar(0, 255, 255), 4);
+            drawArrow(img, point, point + normal * 100, cv::Scalar(0, 0, 255), 2);
+        }
+    }
+
+
+    cv::imshow(wname, img);
+}
+
+void CallBackFunc(int event, int x, int y, int flags, void* userdata) {
+    if (event == cv::EVENT_LBUTTONDOWN) {
+        cout << "Left button of the mouse is clicked - position (" << x << ", " << y << ")" << endl;
+        cv::Point2f p(x, y);
+        points.push_back(p);
+        bypass = 0;
+        update();
+    }
+}
+
+int main(int argc, char** argv) {
 
     // Initialize ROS
     lar_tools::init_ros_node(argc, argv, "tesing_node");
     ros::NodeHandle nh("~");
 
-    //PCL
-    pcl::visualization::PCLVisualizer* viewer = new pcl::visualization::PCLVisualizer("viewer");
+    nh.param<double>("w", w, 800);
+    nh.param<double>("h", h, 800);
+    nh.param<double>("alpha", alpha, 0.1f);
+    nh.param<double>("delta", delta, 0.01f);
+    nh.param<double>("eps", eps, 0.005f);
 
 
-    std::string cloud_path;
-    std::string transform_path;
-    double slice_size;
-    double offset;
-    double reduction;
-    double filter_leaf;
 
-    nh.param<std::string>("cloud", cloud_path, "");
-    nh.param<std::string>("transform_path", transform_path, "");
-    nh.param<double>("slice_size", slice_size, 0.01f);
-    nh.param<double>("offset", offset, 0.0f);
-    nh.param<double>("reduction", reduction, 1.0f);
-    nh.param<double>("filter_leaf", filter_leaf, 0.005f);
+    /* VIEWER */
+    //    viewer = new pcl::visualization::PCLVisualizer("Bunch Tester Viewer");
+    //    viewer->registerKeyboardCallback(keyboardEventOccurred, (void*) &viewer);
+
+    img = cv::Mat::zeros(h, w, CV_32FC3);
 
 
-    ROS_INFO("Cloud Path:  %s", cloud_path.c_str());
+    //Create a windowù
 
+    cv::namedWindow(wname, 1);
+    cv::setMouseCallback(wname, CallBackFunc, NULL);
+    cv::imshow(wname, img);
 
-    pcl::PointCloud<PointType>::Ptr cloud(new pcl::PointCloud<PointType>());
-    pcl::PointCloud<PointType>::Ptr cloud_filtered(new pcl::PointCloud<PointType>());
-    pcl::PointCloud<NormalType>::Ptr cloud_normals(new pcl::PointCloud<NormalType>());
-    Eigen::Matrix4f base_transform;
+    short c = cv::waitKey(10);
+    while (true) {
 
-    //Load
-    pcl::io::loadPCDFile<PointType> (cloud_path, *cloud);
-    load_transform(transform_path, base_transform);
-    if (transform_path.compare("") != 0) {
-        pcl::transformPointCloud(*cloud, *cloud, base_transform);
-    } else {
-        lar_tools::create_eigen_4x4(0, 0, 0, 0, 0, 0, base_transform);
+        c = cv::waitKey(10);
+        if (c != -1) {
+            if (c == 113) {
+                break;
+            }
+            if (c == 115) {
+                alpha -= 0.001f;
+                std::cout << "Alpha: " << alpha << std::endl;
+                update();
+            }
+            if (c == 100) {
+                alpha += 0.001f;
+                std::cout << "Alpha: " << alpha << std::endl;
+                update();
+            }
+            if (c == 98) {
+                bypass++;
+
+                update();
+            }
+            std::cout << c << std::endl;
+        }
     }
 
-    // Create the filtering object
-    pcl::VoxelGrid<PointType> sor;
-    sor.setInputCloud(cloud);
-    sor.setLeafSize(filter_leaf, filter_leaf, filter_leaf);
-    sor.filter(*cloud_filtered);
-
-    //Normals
-    compute_normals(cloud_filtered, cloud_normals);
-
-
-    //Segmentation
-    pcl::PointCloud<PointType>::Ptr planes(new pcl::PointCloud<PointType>());
-    pcl::PointCloud<PointType>::Ptr clusters(new pcl::PointCloud<PointType>());
-    std::vector<int> filtered_indices;
-    std::vector<int> planes_indices;
-
-    HighMap map(2.0f, slice_size, offset, reduction);
-    map.planesCheck(
-            cloud_filtered,
-            cloud_normals,
-            filtered_indices,
-            planes_indices,
-            10.0f,
-            500
-            );
-    pcl::copyPointCloud(*cloud_filtered, filtered_indices, *clusters);
-    pcl::copyPointCloud(*cloud_filtered, planes_indices, *planes);
-    
-    
-    //Clusterization
-    Palette palette;
-    std::vector<pcl::PointIndices> cluster_indices;
-    clusterize(clusters,cluster_indices);
-    for(int i = 0; i < cluster_indices.size(); i++){
-        pcl::PointCloud<PointType>::Ptr cluster(new pcl::PointCloud<PointType>());
-        pcl::copyPointCloud(*clusters, cluster_indices[i].indices, *cluster);
-        std::string name = "cluster_"+ boost::lexical_cast<std::string>(i);
-        Eigen::Vector3i color = palette.getColor();
-        display_cloud(*viewer, cluster, color[0], color[1], color[2],1, name);
-    }
-    
-    //Draw
-
-    display_cloud(*viewer, planes, 255, 0, 0, 1, "planes");
-    
-    pcl::ReferenceFrame rf;
-    rf.x_axis[0] = 1.0f;
-    rf.x_axis[1] = 0.0f;
-    rf.x_axis[2] = 0.0f;
-
-    rf.y_axis[0] = 0.0f;
-    rf.y_axis[1] = 1.0f;
-    rf.y_axis[2] = 0.0f;
-
-    rf.z_axis[0] = 0.0f;
-    rf.z_axis[1] = 0.0f;
-    rf.z_axis[2] = 1.0f;
-
-    Eigen::Vector3f center;
-    center << 0, 0, 0;
-
-    draw_reference_frame(*viewer, center, rf, 1.0f, "base");
-
-
-    while (nh.ok() && !viewer->wasStopped()) {
-        viewer->spinOnce();
-        ros::spinOnce();
-    }
+    return 0;
 }

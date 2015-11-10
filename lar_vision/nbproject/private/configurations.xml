@@ -7,6 +7,14 @@
           <df name="commons">
             <in>lar_vision_commons.h</in>
           </df>
+          <df name="grasping">
+            <df name="grippers">
+              <in>GraspingGripper.h</in>
+              <in>Gripper.h</in>
+            </df>
+            <in>Grasper.h</in>
+            <in>Slicer.h</in>
+          </df>
           <df name="segmentation">
             <in>HighMap.h</in>
           </df>
@@ -18,7 +26,16 @@
         <df name="commons">
           <in>lar_vision_commons.cpp</in>
         </df>
+        <df name="grasping">
+          <df name="grippers">
+            <in>GraspingGripper.cpp</in>
+            <in>Gripper.cpp</in>
+          </df>
+          <in>Grasper.cpp</in>
+          <in>Slicer.cpp</in>
+        </df>
         <df name="nodes">
+          <in>height_map_segmentation_rf.cpp</in>
           <in>testing_node.cpp</in>
         </df>
         <df name="segmentation">
