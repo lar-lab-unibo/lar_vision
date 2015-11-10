@@ -39,16 +39,16 @@ double alpha = 0.006f;
 double delta = 0.01f;
 double eps = 0.005f;
 int bypass = 0;
-pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
-pcl::PointCloud<pcl::PointXYZ>::Ptr hull(new pcl::PointCloud<pcl::PointXYZ>);
+pcl::PointCloud<PointType>::Ptr cloud(new pcl::PointCloud<PointType>);
+pcl::PointCloud<PointType>::Ptr hull(new pcl::PointCloud<PointType>);
 
 std::vector<cv::Point2f> refined_points;
 std::vector<cv::Point2f> normals;
 
-void pointsToCloud(std::vector<cv::Point2f>& points, pcl::PointCloud<pcl::PointXYZ>::Ptr& cloud, bool reverse = false) {
+void pointsToCloud(std::vector<cv::Point2f>& points, pcl::PointCloud<PointType>::Ptr& cloud, bool reverse = false) {
     cloud->points.clear();
     for (int i = 0; i < points.size(); i++) {
-        pcl::PointXYZ pt;
+        PointType pt;
         pt.x = points[i].x / scale;
         pt.y = points[i].y / scale;
         cloud->points.push_back(pt);

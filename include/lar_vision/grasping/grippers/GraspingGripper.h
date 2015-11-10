@@ -19,25 +19,29 @@
 #define GRASPING_GRIPPER_STATUS_PARALLEL 0
 #define GRASPING_GRIPPER_STATUS_TRIPOD 1
 #define GRASPING_GRIPPER_STATUS_DUAL 2
-#define GRASPING_GRIPPER_EPSILON 0.0001
+#define GRASPING_GRIPPER_EPSILON 0.01
 #define GRASPING_GRIPPER_ORTHOGONAL_RANGE 0.087222222
-
+#define GRASPING_GRIPPER_MAX_CURVATURE 1.0
 
 namespace lar_vision {
 
     class GraspingGripper {
     public:
-        GraspingGripper(int type = GRASPING_GRIPPER_STATUS_PARALLEL, double offset = 0.05f, double min = 0.005f, double max = 0.4f, double epsilon = GRASPING_GRIPPER_EPSILON, double ortogonal_range = GRASPING_GRIPPER_ORTHOGONAL_RANGE);
+        GraspingGripper(int type = GRASPING_GRIPPER_STATUS_PARALLEL, double offset = 0.05f, double min = 0.005f, double max = 0.2f, double epsilon = GRASPING_GRIPPER_EPSILON, double ortogonal_range = GRASPING_GRIPPER_ORTHOGONAL_RANGE,double max_curvature = GRASPING_GRIPPER_MAX_CURVATURE);
         virtual ~GraspingGripper();
         void find(std::vector<GrasperPoint>& points, std::vector<int>& indices, int jump = 0);
         void findParallel(std::vector<GrasperPoint>& points, std::vector<int>& indices, int jump = 0);
-    private:
         double offset;
         double min_radius;
         double max_radius;
+        double max_curvature;
         double ortogonal_range;
         double epsilon;
+        bool discard_vertices;
         int type;
+    private:
+        
+        
     };
 }
 #endif /* GRASPINGGRIPPER_H */

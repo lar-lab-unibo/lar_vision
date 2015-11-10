@@ -23,21 +23,21 @@ namespace lar_vision {
     Grasper::~Grasper() {
     }
 
-    void Grasper::setCloud(pcl::PointCloud<pcl::PointXYZ>::Ptr& cloud) {
+    void Grasper::setCloud(pcl::PointCloud<PointType>::Ptr& cloud) {
         this->cloud = cloud;
-        this->hull = pcl::PointCloud<pcl::PointXYZ>::Ptr(new pcl::PointCloud<pcl::PointXYZ>);
+        this->hull = pcl::PointCloud<PointType>::Ptr(new pcl::PointCloud<PointType>);
         this->lines.clear();
 
-        pcl::ConcaveHull<pcl::PointXYZ> chull;
+        pcl::ConcaveHull<PointType> chull;
         chull.setInputCloud(this->cloud);
         chull.setAlpha(this->concave_alpha);
         chull.reconstruct(*this->hull);
 
         //LINES
-        pcl::PointXYZ last;
-        pcl::PointXYZ first;
+        PointType last;
+        PointType first;
         for (int i = 0; i < this->hull->points.size(); i++) {
-            pcl::PointXYZ current;
+            PointType current;
             current = this->hull->points[i];
             if (i > 0) {
                 GrasperLine line(last.x, last.y, current.x, current.y, this->discretization_step);
@@ -93,6 +93,7 @@ namespace lar_vision {
     void Grasper::computeNormals() {
         this->normals.clear();
 
+        int depth;
         Eigen::Vector2f dir;
         dir << 0, 0;
         if (points.size() < 3)return;
@@ -100,6 +101,13 @@ namespace lar_vision {
             GrasperPoint current = points[i];
             GrasperPoint* next = current.next;
             GrasperPoint* back = current.back;
+            depth = 2;
+            while (next != NULL && back != NULL && depth >= 0) {
+                back = back->back;
+                next = next->next;
+                depth--;
+            }
+
             if (next == NULL || back == NULL) {
                 std::cout << "NULL\n";
                 continue;
@@ -111,6 +119,7 @@ namespace lar_vision {
             dir = (current.p - centroid)*(1.0f / (current.p - centroid).norm());
             if (normal.dot(dir) < 0)normal = -normal;
             points[i].normal = normal;
+            points[i].curvature = acos(g2.ortogonal().dot(g1.ortogonal()));
         }
     }
 
@@ -125,29 +134,20 @@ namespace lar_vision {
 
     bool Grasper::isValidPlanarConfiguration(std::vector<GrasperPoint>& points) {
         Eigen::Vector2f north;
-        Eigen::Vector2f south;
-        Eigen::Vector2f west;
-        Eigen::Vector2f east;
         north << 0, -1;
-        south << 0, 11;
-        east << 1, 0;
-        west << -1, 0;
+        Eigen::Matrix2f rot;
         bool valid = true;
-        std::cout << "Checking north\n";
-        valid = valid && isVectorPositiveCombinationOf(north, points);
-        std::cout << "Checking south\n";
-        valid = valid && isVectorPositiveCombinationOf(south, points);
-        std::cout << "Checking west\n";
-        valid = valid && isVectorPositiveCombinationOf(west, points);
-        std::cout << "Checking east\n";
-        valid = valid && isVectorPositiveCombinationOf(east, points);
+        for (float angle = 0; angle < 2 * M_PI; angle += M_PI / 4.0f) {
+            rot << cos(angle), -sin(angle), sin(angle), cos(angle);
+            north = rot*north;
+            valid = valid && isVectorPositiveCombinationOf(north, points);
+        }
         return valid;
     }
 
     bool Grasper::isVectorPositiveCombinationOf(Eigen::Vector2f& vector, std::vector<GrasperPoint>& points) {
 
         for (int i = 0; i < points.size(); i++) {
-            std::cout << "\n" << vector << "\n |_ \n" << points[i].normal << std::endl;
             if (vector.dot(points[i].normal) > 0)return true;
         }
         return false;

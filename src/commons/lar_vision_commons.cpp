@@ -96,6 +96,12 @@ namespace lar_vision {
 
     }
 
+    void draw_text_3D(pcl::visualization::PCLVisualizer &viewer, std::string text, Eigen::Vector3f center, float r, float g, float b, float size, std::string name) {
+        PointType p;
+        convert_point_3D(p, center, true);
+        viewer.addText3D(text, p, size, r / 255.0f, g / 255.0f, b / 255.0f, name);
+    }
+
     void
     clusterize(pcl::PointCloud<PointType>::Ptr& cloud, std::vector<pcl::PointIndices>& cluster_indices, float cluster_tolerance, float min_cluster_size, float max_cluster_size) {
         pcl::search::KdTree<PointType>::Ptr tree2(new pcl::search::KdTree<PointType>);

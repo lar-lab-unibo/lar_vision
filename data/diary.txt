@@ -1,0 +1,5 @@
+
+Risultato buono con:
+
+ rosrun lar_vision lar_vision_height_map_segmentation_rf _cloud:=/home/daniele/temp/table_top_simulated.pcd _transform_path:=/home/daniele/temp/table_top_simulated.txt _filter_leaf:=0.005 _slice_size:=0.01  _doslice:=true _dograsp:=false _grasp_alpha:=0.1 _grasp_delta:=0.001
+

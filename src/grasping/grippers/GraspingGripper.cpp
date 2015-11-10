@@ -15,13 +15,15 @@
 
 namespace lar_vision {
 
-    GraspingGripper::GraspingGripper(int type, double offset, double min, double max, double epsilon, double ortogonal_range) {
+    GraspingGripper::GraspingGripper(int type, double offset, double min, double max, double epsilon, double ortogonal_range, double max_curvature) {
         this->type = type;
         this->offset = offset;
         this->min_radius = min;
         this->max_radius = max;
+        this->max_curvature = max_curvature;
         this->epsilon = epsilon;
         this->ortogonal_range = ortogonal_range;
+        this->discard_vertices = true;
     }
 
     GraspingGripper::~GraspingGripper() {
@@ -41,9 +43,13 @@ namespace lar_vision {
         indices.clear();
         int found = 0;
         for (int i = 0; i < points.size(); i++) {
+            if(points[i].curvature > this->max_curvature)continue;
             target = points[i].p;
+            
             for (int j = 0; j < points.size(); j++) {
                 if (i != j) {
+                    if(points[j].curvature > this->max_curvature)continue;
+                    
                     pointer = points[j].p;
                     offset_distance = (target - pointer).norm();
 
@@ -54,6 +60,8 @@ namespace lar_vision {
 
                         for (int k = 0; k < points.size(); k++) {
                             if (k != j && k != i) {
+                                if(points[k].curvature > this->max_curvature)continue;
+                                
                                 Eigen::Vector2f third = points[k].p;
                                 Eigen::Vector2f dir = (third - middle)*(1.0f / (third - middle).norm());
 

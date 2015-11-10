@@ -85,7 +85,12 @@ namespace lar_vision {
      */
     void
     draw_3D_vector(pcl::visualization::PCLVisualizer& viewer, Eigen::Vector3f start, Eigen::Vector3f end, float r, float g, float b, std::string name);
-
+    
+    /**
+     */
+    void 
+    draw_text_3D(pcl::visualization::PCLVisualizer &viewer, std::string text, Eigen::Vector3f center, float r, float g, float b, float size, std::string name);
+    
     /**
      */
     void

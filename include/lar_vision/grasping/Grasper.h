@@ -14,6 +14,7 @@
 #ifndef GRASPER_H
 #define GRASPER_H
 
+#include "lar_vision_commons.h"
 #include <pcl/common/io.h>
 #include <pcl/surface/concave_hull.h>
 
@@ -26,6 +27,7 @@ namespace lar_vision {
     struct GrasperPoint {
         Eigen::Vector2f p;
         Eigen::Vector2f normal;
+        double curvature;
         GrasperPoint* next;
         GrasperPoint* back;
         bool vertex;
@@ -95,7 +97,7 @@ namespace lar_vision {
     public:
         Grasper(double concave_alpha = 0.1f, double discretization_step = 0.01f);
         virtual ~Grasper();
-        void setCloud(pcl::PointCloud<pcl::PointXYZ>::Ptr& cloud);
+        void setCloud(pcl::PointCloud<PointType>::Ptr& cloud);
         bool isValidPlanarConfiguration(std::vector<int>& indices);
         bool isValidPlanarConfiguration(std::vector<GrasperPoint>& points);
         bool isVectorPositiveCombinationOf(Eigen::Vector2f& vector, std::vector<GrasperPoint>& points);
@@ -105,6 +107,7 @@ namespace lar_vision {
         std::vector<GrasperPoint> normals;
         Eigen::Vector2f centroid;
         int debug_jump;
+        pcl::PointCloud<PointType>::Ptr hull;
     private:
         void refinePoints();
         void computeNormals();
@@ -113,8 +116,8 @@ namespace lar_vision {
         double concave_alpha;
         double discretization_step;
 
-        pcl::PointCloud<pcl::PointXYZ>::Ptr cloud;
-        pcl::PointCloud<pcl::PointXYZ>::Ptr hull;
+        pcl::PointCloud<PointType>::Ptr cloud;
+        
 
         int gripper_status;
 
