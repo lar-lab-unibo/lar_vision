@@ -16,6 +16,7 @@
       </df>
       <df name="src">
         <df name="commons">
+          <in>lar_vision_commons.cpp</in>
         </df>
         <df name="nodes">
           <in>testing_node.cpp</in>

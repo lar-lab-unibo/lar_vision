@@ -3,6 +3,9 @@
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <df root=".." name="0">
       <df name="src">
+        <df name="commons">
+          <in>lar_vision_commons.cpp</in>
+        </df>
         <df name="nodes">
           <in>testing_node.cpp</in>
         </df>
@@ -12,17 +15,10 @@
       </df>
     </df>
     <logicalFolder name="src" displayName="src" projectFiles="true" root="../..">
-      <logicalFolder name="lar_tools" displayName="lar_tools" projectFiles="true">
-        <logicalFolder name="src" displayName="src" projectFiles="true">
-          <logicalFolder name="lar_tool_utils"
-                         displayName="lar_tool_utils"
-                         projectFiles="true">
-            <itemPath>../../lar_tools/src/lar_tool_utils/UDPNode.cpp</itemPath>
-          </logicalFolder>
-          <logicalFolder name="nodes" displayName="nodes" projectFiles="true">
-            <logicalFolder name="test" displayName="test" projectFiles="true">
-              <itemPath>../../lar_tools/src/nodes/test/testing_node.cpp</itemPath>
-            </logicalFolder>
+      <logicalFolder name="kuka-lwr" displayName="kuka-lwr" projectFiles="true">
+        <logicalFolder name="lwr_testing" displayName="lwr_testing" projectFiles="true">
+          <logicalFolder name="src" displayName="src" projectFiles="true">
+            <itemPath>../../kuka-lwr/lwr_testing/src/lwr_test.cpp</itemPath>
           </logicalFolder>
         </logicalFolder>
       </logicalFolder>
@@ -69,9 +65,18 @@
           <executablePath></executablePath>
           <ccTool>
             <preprocessorList>
+              <Elem>DISABLE_DAVIDSDK</Elem>
+              <Elem>DISABLE_ENSENSO</Elem>
+              <Elem>DISABLE_OPENNI2</Elem>
+              <Elem>DISABLE_PCAP</Elem>
+              <Elem>DISABLE_PNG</Elem>
+              <Elem>EIGEN_USE_NEW_STDVECTOR</Elem>
+              <Elem>EIGEN_YES_I_KNOW_SPARSE_MODULE_IS_NOT_STABLE_YET</Elem>
+              <Elem>FLANN_STATIC</Elem>
               <Elem>ROSCONSOLE_BACKEND_LOG4CXX</Elem>
               <Elem>ROS_BUILD_SHARED_LIBS=1</Elem>
               <Elem>ROS_PACKAGE_NAME="lar_vision"</Elem>
+              <Elem>qh_QHpointer</Elem>
             </preprocessorList>
           </ccTool>
         </makeTool>
@@ -80,14 +85,7 @@
           <preBuildCommand>cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Debug -DCMAKE_C_COMPILER=${IDE_CC} -DCMAKE_CXX_COMPILER=${IDE_CXX} -DCMAKE_C_FLAGS_DEBUG="-g3 -gdwarf-2" -DCMAKE_CXX_FLAGS_DEBUG="-g3 -gdwarf-2" -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCATKIN_DEVEL_SPACE=../devel  -DCMAKE_INSTALL_PREFIX=../install  .</preBuildCommand>
         </preBuild>
       </makefileType>
-      <item path="../../lar_tools/src/lar_tool_utils/UDPNode.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-        <ccTool flags="0">
-        </ccTool>
-      </item>
-      <item path="../../lar_tools/src/nodes/test/testing_node.cpp"
+      <item path="../../kuka-lwr/lwr_testing/src/lwr_test.cpp"
             ex="false"
             tool="1"
             flavor2="0">
@@ -102,7 +100,14 @@
             tool="1"
             flavor2="0">
       </item>
-      <item path="../src/nodes/testing_node.cpp" ex="false" tool="1" flavor2="0">
+      <item path="../src/commons/lar_vision_commons.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+        <ccTool flags="0">
+        </ccTool>
+      </item>
+      <item path="../src/nodes/testing_node.cpp" ex="false" tool="1" flavor2="4">
       </item>
       <item path="../src/segmentation/HighMap.cpp" ex="false" tool="1" flavor2="4">
         <ccTool flags="0">
@@ -127,16 +132,12 @@
             <pElem>../include/lar_vision/segmentation</pElem>
             <pElem>../../../build/lar_vision</pElem>
           </incDir>
+        </ccTool>
+      </folder>
+      <folder path="0/src/commons">
+        <ccTool>
           <preprocessorList>
-            <Elem>DISABLE_DAVIDSDK</Elem>
-            <Elem>DISABLE_ENSENSO</Elem>
-            <Elem>DISABLE_OPENNI2</Elem>
-            <Elem>DISABLE_PCAP</Elem>
-            <Elem>DISABLE_PNG</Elem>
-            <Elem>DISABLE_QHULL</Elem>
-            <Elem>EIGEN_USE_NEW_STDVECTOR</Elem>
-            <Elem>EIGEN_YES_I_KNOW_SPARSE_MODULE_IS_NOT_STABLE_YET</Elem>
-            <Elem>FLANN_STATIC</Elem>
+            <Elem>lar_vision_commons_EXPORTS</Elem>
           </preprocessorList>
         </ccTool>
       </folder>
@@ -150,27 +151,26 @@
       <folder path="src">
         <ccTool>
           <preprocessorList>
-            <Elem>ROS_PACKAGE_NAME="lar_tools"</Elem>
+            <Elem>ROS_PACKAGE_NAME="lwr_testing"</Elem>
           </preprocessorList>
         </ccTool>
       </folder>
-      <folder path="src/lar_tools">
+      <folder path="src/kuka-lwr">
         <ccTool>
           <incDir>
+            <pElem>../../../devel/include</pElem>
+            <pElem>../../kuka-lwr/lwr_controllers/include</pElem>
             <pElem>/opt/ros/indigo/include</pElem>
+            <pElem>/usr/include/opencv</pElem>
             <pElem>/usr/include/eigen3</pElem>
-            <pElem>../../lar_tools/EIGEN3_INCLUDE_DIR</pElem>
-            <pElem>../../lar_tools/include</pElem>
-            <pElem>../../lar_tools/include/lar_tool_utils</pElem>
-            <pElem>../../../build/lar_tools</pElem>
+            <pElem>/usr/include/pcl-1.7</pElem>
+            <pElem>/usr/include/ni</pElem>
+            <pElem>/usr/include/vtk-5.8</pElem>
+            <pElem>/usr/local/include/pcl-1.8</pElem>
+            <pElem>/usr/local/include/opencv</pElem>
+            <pElem>/usr/local/include</pElem>
+            <pElem>../../../build/kuka-lwr/lwr_testing</pElem>
           </incDir>
-        </ccTool>
-      </folder>
-      <folder path="src/lar_tools/src/lar_tool_utils">
-        <ccTool>
-          <preprocessorList>
-            <Elem>lar_tools_EXPORTS</Elem>
-          </preprocessorList>
         </ccTool>
       </folder>
       <folder path="src/trimod_gripper">
@@ -195,15 +195,6 @@
             <pElem>../../../build/trimod_gripper</pElem>
           </incDir>
           <preprocessorList>
-            <Elem>DISABLE_DAVIDSDK</Elem>
-            <Elem>DISABLE_ENSENSO</Elem>
-            <Elem>DISABLE_OPENNI2</Elem>
-            <Elem>DISABLE_PCAP</Elem>
-            <Elem>DISABLE_PNG</Elem>
-            <Elem>DISABLE_QHULL</Elem>
-            <Elem>EIGEN_USE_NEW_STDVECTOR</Elem>
-            <Elem>EIGEN_YES_I_KNOW_SPARSE_MODULE_IS_NOT_STABLE_YET</Elem>
-            <Elem>FLANN_STATIC</Elem>
             <Elem>ROS_PACKAGE_NAME="trimod_gripper"</Elem>
           </preprocessorList>
         </ccTool>

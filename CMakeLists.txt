@@ -57,6 +57,7 @@ include_directories(
 
 #LAR VISION COMMONS LIBRARY
 add_library(lar_vision_commons
+        src/commons/lar_vision_commons.cpp
         src/segmentation/HighMap.cpp
 )
 target_link_libraries (lar_vision_commons ${catkin_LIBRARIES} ${OpenCV_LIBS} ${PCL_LIBRARIES} lar_tools)

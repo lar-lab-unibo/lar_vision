@@ -57,15 +57,15 @@ namespace lar_vision {
         int iz = floor(z / step);
         iz += floor(this->offset / step);
         if (iz<this->size && iz >= 0) {
-
+            
             return this->map[iz];
         }
         return -1;
     }
 
     void HighMap::planesCheck(
-            pcl::PointCloud<pcl::PointXYZRGBA>::Ptr& cloud,
-            pcl::PointCloud<pcl::Normal>::Ptr& cloud_normals,
+            pcl::PointCloud<PointType>::Ptr& cloud,
+            pcl::PointCloud<NormalType>::Ptr& cloud_normals,
             std::vector<int>& filtered_indices,
             std::vector<int>& planes_indices,
             float max_angle,
@@ -73,12 +73,12 @@ namespace lar_vision {
 
 
         Eigen::Vector3f normal;
-        Eigen::Vector3f gravity_neg(0, 0, 1);
+        Eigen::Vector3f gravity_neg(0, 0, -1);
 
 
         for (int i = 0; i < cloud_normals->points.size(); i += reduction) {
-            pcl::Normal n = cloud_normals->points[i];
-            pcl::PointXYZRGBA p = cloud->points[i];
+            NormalType n = cloud_normals->points[i];
+            PointType p = cloud->points[i];
             normal(0) = n.normal_x;
             normal(1) = n.normal_y;
             normal(2) = n.normal_z;
@@ -90,7 +90,7 @@ namespace lar_vision {
         }
 
         for (int i = 0; i < cloud->points.size(); i++) {
-            pcl::PointXYZRGBA p = cloud->points[i];
+            PointType p = cloud->points[i];
 
 
             if (this->pointValue(p.z) >= map_min_inliers) {

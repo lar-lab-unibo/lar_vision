@@ -14,8 +14,83 @@
 #ifndef LAR_VISION_COMMONS_H
 #define LAR_VISION_COMMONS_H
 
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+
+#include <pcl/visualization/pcl_visualizer.h>
 
 
+namespace lar_vision {
+
+    typedef pcl::PointXYZRGBA PointType;
+    typedef pcl::Normal NormalType;
+    
+    /**
+     * Palette of colors
+     */
+    struct Palette {
+        std::vector<Eigen::Vector3i> colors;
+        int index;
+
+        Palette() {
+            index = -1;
+            colors.push_back(Eigen::Vector3i(115, 255, 0));
+            colors.push_back(Eigen::Vector3i(232, 159, 12));
+            colors.push_back(Eigen::Vector3i(255, 0, 0));
+            colors.push_back(Eigen::Vector3i(61, 12, 232));
+            colors.push_back(Eigen::Vector3i(13, 255, 239));
+        }
+
+        Eigen::Vector3i getColor() {
+            index++;
+            index = index % colors.size();
+            return colors[index];
+        }
+    };
+    
+
+    /**
+     * Displays Cloud in viewer
+     * @param viewer target viewer
+     * @param cloud target cloud
+     * @param r Red
+     * @param g Green
+     * @param b Blue
+     * @param size point size
+     * @param name ID_NAME for viewer (no duplicates)
+     */
+    void
+    display_cloud(pcl::visualization::PCLVisualizer &viewer, pcl::PointCloud<PointType>::Ptr& cloud, int r, int g, int b, int size, std::string name);
+
+    /**
+     * Compute Normals on an unorganized cloud
+     */
+    void
+    compute_normals(pcl::PointCloud<PointType>::Ptr& cloud, pcl::PointCloud<NormalType>::Ptr& cloud_normals, float radius_search = 0.03f);
+
+    /**
+     * Clusterize Point Cloud
+     */
+    void
+    clusterize(pcl::PointCloud<PointType>::Ptr& cloud, std::vector<pcl::PointIndices>& cluster_indices, float cluster_tolerance = 0.01f, float min_cluster_size = 100, float max_cluster_size = 250000);
+
+    /*
+     * Conversion between PCL POint and Eigen Vector
+     */
+    void
+    convert_point_3D(PointType& pt, Eigen::Vector3f& p, bool reverse);
+
+    /**
+     */
+    void
+    draw_3D_vector(pcl::visualization::PCLVisualizer& viewer, Eigen::Vector3f start, Eigen::Vector3f end, float r, float g, float b, std::string name);
+
+    /**
+     */
+    void
+    draw_reference_frame(pcl::visualization::PCLVisualizer &viewer, Eigen::Vector3f center, pcl::ReferenceFrame rf, float size, std::string name);
+}
 
 #endif /* LAR_VISION_COMMONS_H */
 

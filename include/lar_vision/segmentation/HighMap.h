@@ -20,6 +20,7 @@
 #include <string>
 #include <pcl/point_types.h>
 #include <pcl/io/pcd_io.h>
+#include "lar_vision_commons.h"
 
 namespace lar_vision {
 
@@ -34,8 +35,8 @@ namespace lar_vision {
         int pointIndex(double z);
         double pointValue(double z);
         void planesCheck(
-                pcl::PointCloud<pcl::PointXYZRGBA>::Ptr& cloud,
-                pcl::PointCloud<pcl::Normal>::Ptr& cloud_normals,
+                pcl::PointCloud<PointType>::Ptr& cloud,
+                pcl::PointCloud<NormalType>::Ptr& cloud_normals,
                 std::vector<int>& filtered_indices,
                 std::vector<int>& planes_indices,
                 float max_angle,
