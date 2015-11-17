@@ -39,12 +39,7 @@ find_package(lar_tools)
 include_directories(${lar_tools_INCLUDE_DIRS})
 
 
-catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES lar_vision
-#  CATKIN_DEPENDS cv_bridge image_transport pcl_ros roscpp rospy
-#  DEPENDS system_lib
-)
+
 
 
 include_directories(
@@ -56,16 +51,30 @@ include_directories(
   include/${PROJECT_NAME}/grasping/grippers
 )
 
+catkin_package(
+  INCLUDE_DIRS
+    include/
+    include/${PROJECT_NAME}/
+    include/${PROJECT_NAME}/commons
+    include/${PROJECT_NAME}/segmentation
+    include/${PROJECT_NAME}/grasping
+    include/${PROJECT_NAME}/grasping/grippers
+#  INCLUDE_DIRS include
+   LIBRARIES ${PROJECT_NAME}
+   CATKIN_DEPENDS cv_bridge image_transport pcl_ros roscpp rospy
+#  DEPENDS system_lib
+)
+
 
 #LAR VISION COMMONS LIBRARY
-add_library(lar_vision_commons
+add_library(lar_vision
         src/commons/lar_vision_commons.cpp
         src/segmentation/HighMap.cpp
         src/grasping/Slicer.cpp
         src/grasping/Grasper.cpp
         src/grasping/grippers/GraspingGripper.cpp
 )
-target_link_libraries (lar_vision_commons ${catkin_LIBRARIES} ${OpenCV_LIBS} ${PCL_LIBRARIES} lar_tools)
+target_link_libraries (lar_vision ${catkin_LIBRARIES} ${OpenCV_LIBS} ${PCL_LIBRARIES} lar_tools)
 
 
 
@@ -73,10 +82,8 @@ target_link_libraries (lar_vision_commons ${catkin_LIBRARIES} ${OpenCV_LIBS} ${P
 
 # TESTING NODE
 add_executable(${PROJECT_NAME}_testing_node  src/nodes/testing_node.cpp)
-target_link_libraries(${PROJECT_NAME}_testing_node ${catkin_LIBRARIES} lar_vision_commons lar_tools)
+target_link_libraries(${PROJECT_NAME}_testing_node ${catkin_LIBRARIES} lar_vision lar_tools)
 
 # height_map_segmentation_rf
 add_executable(${PROJECT_NAME}_height_map_segmentation_rf  src/nodes/height_map_segmentation_rf.cpp)
-target_link_libraries(${PROJECT_NAME}_height_map_segmentation_rf ${catkin_LIBRARIES} lar_vision_commons lar_tools)
-
-
+target_link_libraries(${PROJECT_NAME}_height_map_segmentation_rf ${catkin_LIBRARIES} lar_vision lar_tools)
