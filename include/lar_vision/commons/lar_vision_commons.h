@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 
-/* 
+/*
  * File:   lar_vision_commons.h
  * Author: daniele
  *
@@ -23,7 +23,7 @@
 
 namespace lar_vision {
 
-    typedef pcl::PointXYZRGBA PointType;
+    typedef pcl::PointXYZRGB PointType;
     typedef pcl::Normal NormalType;
 
     /**
@@ -85,12 +85,12 @@ namespace lar_vision {
      */
     void
     draw_3D_vector(pcl::visualization::PCLVisualizer& viewer, Eigen::Vector3f start, Eigen::Vector3f end, float r, float g, float b, std::string name);
-    
+
     /**
      */
-    void 
+    void
     draw_text_3D(pcl::visualization::PCLVisualizer &viewer, std::string text, Eigen::Vector3f center, float r, float g, float b, float size, std::string name);
-    
+
     /**
      */
     void
@@ -100,14 +100,14 @@ namespace lar_vision {
      */
     void
     compute_centroid_local_rf(pcl::PointCloud<PointType>::Ptr& cloud, pcl::ReferenceFrame& rf, int type = -1);
-    
+
     /**
      */
     void
     compute_centroid_local_rf(pcl::PointCloud<PointType>::Ptr& cloud, pcl::ReferenceFrame& rf, Eigen::Vector3f& gravity, int type = -1);
 
     /**
-     * 
+     *
      * @param rf
      * @param vector
      */
@@ -116,4 +116,3 @@ namespace lar_vision {
 }
 
 #endif /* LAR_VISION_COMMONS_H */
-

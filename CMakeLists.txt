@@ -69,6 +69,7 @@ catkin_package(
 #LAR VISION COMMONS LIBRARY
 add_library(lar_vision
         src/commons/lar_vision_commons.cpp
+        src/commons/Noiser.cpp
         src/segmentation/HighMap.cpp
         src/grasping/Slicer.cpp
         src/grasping/Grasper.cpp

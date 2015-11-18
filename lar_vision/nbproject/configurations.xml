@@ -2,11 +2,9 @@
 <configurationDescriptor version="97">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <df root=".." name="0">
-      <df name="data">
-        <in>diary.txt</in>
-      </df>
       <df name="src">
         <df name="commons">
+          <in>Noiser.cpp</in>
           <in>lar_vision_commons.cpp</in>
         </df>
         <df name="grasping">
@@ -26,67 +24,11 @@
         </df>
       </df>
     </df>
-    <logicalFolder name="src" displayName="src" projectFiles="true" root="../..">
-      <logicalFolder name="kuka-lwr" displayName="kuka-lwr" projectFiles="true">
-        <logicalFolder name="lwr_controllers"
-                       displayName="lwr_controllers"
-                       projectFiles="true">
-          <logicalFolder name="src" displayName="src" projectFiles="true">
-            <itemPath>../../kuka-lwr/lwr_controllers/src/backstepping_controller.cpp</itemPath>
-            <itemPath>../../kuka-lwr/lwr_controllers/src/computed_torque_controller.cpp</itemPath>
-            <itemPath>../../kuka-lwr/lwr_controllers/src/dynamic_sliding_mode_controller.cpp</itemPath>
-            <itemPath>../../kuka-lwr/lwr_controllers/src/dynamic_sliding_mode_controller_task_space.cpp</itemPath>
-            <itemPath>../../kuka-lwr/lwr_controllers/src/full_control_simple.cpp</itemPath>
-            <itemPath>../../kuka-lwr/lwr_controllers/src/gravity_compensation.cpp</itemPath>
-            <itemPath>../../kuka-lwr/lwr_controllers/src/inverse_dynamics_controller.cpp</itemPath>
-            <itemPath>../../kuka-lwr/lwr_controllers/src/joint_impedance_controller.cpp</itemPath>
-            <itemPath>../../kuka-lwr/lwr_controllers/src/minimum_effort_inverse_dynamics.cpp</itemPath>
-            <itemPath>../../kuka-lwr/lwr_controllers/src/multi_task_priority_inverse_dynamics.cpp</itemPath>
-            <itemPath>../../kuka-lwr/lwr_controllers/src/multi_task_priority_inverse_kinematics.cpp</itemPath>
-            <itemPath>../../kuka-lwr/lwr_controllers/src/one_task_inverse_dynamics_jl.cpp</itemPath>
-            <itemPath>../../kuka-lwr/lwr_controllers/src/one_task_inverse_kinematics.cpp</itemPath>
-          </logicalFolder>
-        </logicalFolder>
-        <logicalFolder name="lwr_hw" displayName="lwr_hw" projectFiles="true">
-          <logicalFolder name="src" displayName="src" projectFiles="true">
-            <logicalFolder name="fri" displayName="fri" projectFiles="true">
-              <itemPath>../../kuka-lwr/lwr_hw/src/fri/friremote.cpp</itemPath>
-              <itemPath>../../kuka-lwr/lwr_hw/src/fri/friudp.cpp</itemPath>
-            </logicalFolder>
-            <itemPath>../../kuka-lwr/lwr_hw/src/lwr_hw.cpp</itemPath>
-            <itemPath>../../kuka-lwr/lwr_hw/src/lwr_hw_fri_node.cpp</itemPath>
-            <itemPath>../../kuka-lwr/lwr_hw/src/lwr_hw_fril_node.cpp</itemPath>
-            <itemPath>../../kuka-lwr/lwr_hw/src/lwr_hw_gazebo_plugin.cpp</itemPath>
-          </logicalFolder>
-        </logicalFolder>
-        <logicalFolder name="lwr_testing" displayName="lwr_testing" projectFiles="true">
-          <logicalFolder name="src" displayName="src" projectFiles="true">
-            <itemPath>../../kuka-lwr/lwr_testing/src/lwr_test.cpp</itemPath>
-          </logicalFolder>
-        </logicalFolder>
-      </logicalFolder>
-      <logicalFolder name="lar_tools" displayName="lar_tools" projectFiles="true">
-        <logicalFolder name="src" displayName="src" projectFiles="true">
-          <logicalFolder name="lar_tool_utils"
-                         displayName="lar_tool_utils"
-                         projectFiles="true">
-            <itemPath>../../lar_tools/src/lar_tool_utils/UDPNode.cpp</itemPath>
-          </logicalFolder>
-          <logicalFolder name="nodes" displayName="nodes" projectFiles="true">
-            <logicalFolder name="test" displayName="test" projectFiles="true">
-              <itemPath>../../lar_tools/src/nodes/test/testing_node.cpp</itemPath>
-            </logicalFolder>
-          </logicalFolder>
-        </logicalFolder>
-      </logicalFolder>
-      <logicalFolder name="trimod_gripper"
-                     displayName="trimod_gripper"
-                     projectFiles="true">
-        <logicalFolder name="src" displayName="src" projectFiles="true">
-          <itemPath>../../trimod_gripper/src/lwr_manual_photographer.cpp</itemPath>
-          <itemPath>../../trimod_gripper/src/lwr_udp_to_controllers.cpp</itemPath>
-        </logicalFolder>
-      </logicalFolder>
+    <logicalFolder name="src"
+                   displayName="src"
+                   projectFiles="true"
+                   root="../../trimod_gripper/src">
+      <itemPath>../../trimod_gripper/src/comau_clusterizer.cpp</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
@@ -111,8 +53,6 @@
       </toolsSet>
       <flagsDictionary>
         <element flagsID="0" commonFlags="-fPIC"/>
-        <element flagsID="1" commonFlags="-fPIC -std=c++11"/>
-        <element flagsID="2" commonFlags="-std=c++11"/>
       </flagsDictionary>
       <codeAssistance>
       </codeAssistance>
@@ -124,9 +64,18 @@
           <executablePath></executablePath>
           <ccTool>
             <preprocessorList>
+              <Elem>DISABLE_DAVIDSDK</Elem>
+              <Elem>DISABLE_ENSENSO</Elem>
+              <Elem>DISABLE_OPENNI2</Elem>
+              <Elem>DISABLE_PCAP</Elem>
+              <Elem>DISABLE_PNG</Elem>
+              <Elem>EIGEN_USE_NEW_STDVECTOR</Elem>
+              <Elem>EIGEN_YES_I_KNOW_SPARSE_MODULE_IS_NOT_STABLE_YET</Elem>
+              <Elem>FLANN_STATIC</Elem>
               <Elem>ROSCONSOLE_BACKEND_LOG4CXX</Elem>
               <Elem>ROS_BUILD_SHARED_LIBS=1</Elem>
               <Elem>ROS_PACKAGE_NAME="lar_vision"</Elem>
+              <Elem>qh_QHpointer</Elem>
             </preprocessorList>
           </ccTool>
         </makeTool>
@@ -135,182 +84,29 @@
           <preBuildCommand>cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Debug -DCMAKE_C_COMPILER=${IDE_CC} -DCMAKE_CXX_COMPILER=${IDE_CXX} -DCMAKE_C_FLAGS_DEBUG="-g3 -gdwarf-2" -DCMAKE_CXX_FLAGS_DEBUG="-g3 -gdwarf-2" -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCATKIN_DEVEL_SPACE=../devel  -DCMAKE_INSTALL_PREFIX=../install  .</preBuildCommand>
         </preBuild>
       </makefileType>
-      <item path="../../kuka-lwr/lwr_controllers/src/backstepping_controller.cpp"
+      <item path="../../trimod_gripper/src/comau_clusterizer.cpp"
             ex="false"
             tool="1"
-            flavor2="4">
+            flavor2="0">
+      </item>
+      <item path="../src/commons/Noiser.cpp" ex="false" tool="1" flavor2="0">
         <ccTool flags="0">
-        </ccTool>
-      </item>
-      <item path="../../kuka-lwr/lwr_controllers/src/computed_torque_controller.cpp"
-            ex="false"
-            tool="1"
-            flavor2="4">
-        <ccTool flags="0">
-        </ccTool>
-      </item>
-      <item path="../../kuka-lwr/lwr_controllers/src/dynamic_sliding_mode_controller.cpp"
-            ex="false"
-            tool="1"
-            flavor2="4">
-        <ccTool flags="0">
-        </ccTool>
-      </item>
-      <item path="../../kuka-lwr/lwr_controllers/src/dynamic_sliding_mode_controller_task_space.cpp"
-            ex="false"
-            tool="1"
-            flavor2="4">
-        <ccTool flags="0">
-        </ccTool>
-      </item>
-      <item path="../../kuka-lwr/lwr_controllers/src/full_control_simple.cpp"
-            ex="false"
-            tool="1"
-            flavor2="4">
-        <ccTool flags="0">
-        </ccTool>
-      </item>
-      <item path="../../kuka-lwr/lwr_controllers/src/gravity_compensation.cpp"
-            ex="false"
-            tool="1"
-            flavor2="4">
-        <ccTool flags="0">
-        </ccTool>
-      </item>
-      <item path="../../kuka-lwr/lwr_controllers/src/inverse_dynamics_controller.cpp"
-            ex="false"
-            tool="1"
-            flavor2="4">
-        <ccTool flags="0">
-        </ccTool>
-      </item>
-      <item path="../../kuka-lwr/lwr_controllers/src/joint_impedance_controller.cpp"
-            ex="false"
-            tool="1"
-            flavor2="4">
-        <ccTool flags="0">
-        </ccTool>
-      </item>
-      <item path="../../kuka-lwr/lwr_controllers/src/minimum_effort_inverse_dynamics.cpp"
-            ex="false"
-            tool="1"
-            flavor2="4">
-        <ccTool flags="0">
-        </ccTool>
-      </item>
-      <item path="../../kuka-lwr/lwr_controllers/src/multi_task_priority_inverse_dynamics.cpp"
-            ex="false"
-            tool="1"
-            flavor2="4">
-        <ccTool flags="0">
-        </ccTool>
-      </item>
-      <item path="../../kuka-lwr/lwr_controllers/src/multi_task_priority_inverse_kinematics.cpp"
-            ex="false"
-            tool="1"
-            flavor2="4">
-        <ccTool flags="0">
-        </ccTool>
-      </item>
-      <item path="../../kuka-lwr/lwr_controllers/src/one_task_inverse_dynamics_jl.cpp"
-            ex="false"
-            tool="1"
-            flavor2="4">
-        <ccTool flags="0">
-        </ccTool>
-      </item>
-      <item path="../../kuka-lwr/lwr_controllers/src/one_task_inverse_kinematics.cpp"
-            ex="false"
-            tool="1"
-            flavor2="4">
-        <ccTool flags="0">
-        </ccTool>
-      </item>
-      <item path="../../kuka-lwr/lwr_hw/src/fri/friremote.cpp"
-            ex="false"
-            tool="1"
-            flavor2="8">
-        <ccTool flags="1">
-        </ccTool>
-      </item>
-      <item path="../../kuka-lwr/lwr_hw/src/fri/friudp.cpp"
-            ex="false"
-            tool="1"
-            flavor2="8">
-        <ccTool flags="1">
-        </ccTool>
-      </item>
-      <item path="../../kuka-lwr/lwr_hw/src/lwr_hw.cpp"
-            ex="false"
-            tool="1"
-            flavor2="8">
-        <ccTool flags="1">
           <preprocessorList>
-            <Elem>lwr_hw_EXPORTS</Elem>
+            <Elem>lar_vision_EXPORTS</Elem>
           </preprocessorList>
         </ccTool>
-      </item>
-      <item path="../../kuka-lwr/lwr_hw/src/lwr_hw_fri_node.cpp"
-            ex="false"
-            tool="1"
-            flavor2="8">
-        <ccTool flags="2">
-        </ccTool>
-      </item>
-      <item path="../../kuka-lwr/lwr_hw/src/lwr_hw_fril_node.cpp"
-            ex="false"
-            tool="1"
-            flavor2="8">
-        <ccTool flags="2">
-        </ccTool>
-      </item>
-      <item path="../../kuka-lwr/lwr_hw/src/lwr_hw_gazebo_plugin.cpp"
-            ex="false"
-            tool="1"
-            flavor2="8">
-        <ccTool flags="1">
-          <preprocessorList>
-            <Elem>lwr_hw_gazebo_plugin_EXPORTS</Elem>
-          </preprocessorList>
-        </ccTool>
-      </item>
-      <item path="../../kuka-lwr/lwr_testing/src/lwr_test.cpp"
-            ex="false"
-            tool="1"
-            flavor2="4">
-      </item>
-      <item path="../../lar_tools/src/lar_tool_utils/UDPNode.cpp"
-            ex="false"
-            tool="1"
-            flavor2="4">
-        <ccTool flags="0">
-        </ccTool>
-      </item>
-      <item path="../../lar_tools/src/nodes/test/testing_node.cpp"
-            ex="false"
-            tool="1"
-            flavor2="4">
-      </item>
-      <item path="../../trimod_gripper/src/lwr_manual_photographer.cpp"
-            ex="false"
-            tool="1"
-            flavor2="4">
-      </item>
-      <item path="../../trimod_gripper/src/lwr_udp_to_controllers.cpp"
-            ex="false"
-            tool="1"
-            flavor2="4">
-      </item>
-      <item path="../data/diary.txt" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../src/commons/lar_vision_commons.cpp"
             ex="false"
             tool="1"
             flavor2="4">
         <ccTool flags="0">
+          <preprocessorList>
+            <Elem>lar_vision_commons_EXPORTS</Elem>
+          </preprocessorList>
         </ccTool>
       </item>
-      <item path="../src/grasping/Grasper.cpp" ex="false" tool="1" flavor2="0">
+      <item path="../src/grasping/Grasper.cpp" ex="false" tool="1" flavor2="4">
         <ccTool flags="0">
           <incDir>
             <pElem>../include/lar_vision/grasping/grippers</pElem>
@@ -329,7 +125,7 @@
       <item path="../src/grasping/grippers/GraspingGripper.cpp"
             ex="false"
             tool="1"
-            flavor2="0">
+            flavor2="4">
         <ccTool flags="0">
           <incDir>
             <pElem>../include/lar_vision/grasping/grippers</pElem>
@@ -350,7 +146,7 @@
       <item path="../src/nodes/height_map_segmentation_rf.cpp"
             ex="false"
             tool="1"
-            flavor2="0">
+            flavor2="4">
       </item>
       <item path="../src/nodes/testing_node.cpp" ex="false" tool="1" flavor2="4">
       </item>
@@ -377,17 +173,6 @@
             <pElem>../include/lar_vision/segmentation</pElem>
             <pElem>../include/lar_vision/grasping</pElem>
           </incDir>
-          <preprocessorList>
-            <Elem>DISABLE_DAVIDSDK</Elem>
-            <Elem>DISABLE_ENSENSO</Elem>
-            <Elem>DISABLE_OPENNI2</Elem>
-            <Elem>DISABLE_PCAP</Elem>
-            <Elem>DISABLE_PNG</Elem>
-            <Elem>EIGEN_USE_NEW_STDVECTOR</Elem>
-            <Elem>EIGEN_YES_I_KNOW_SPARSE_MODULE_IS_NOT_STABLE_YET</Elem>
-            <Elem>FLANN_STATIC</Elem>
-            <Elem>qh_QHpointer</Elem>
-          </preprocessorList>
         </ccTool>
       </folder>
       <folder path="0/src/commons">
@@ -396,9 +181,6 @@
             <pElem>../include/lar_vision/grasping/grippers</pElem>
             <pElem>../../../build/lar_vision</pElem>
           </incDir>
-          <preprocessorList>
-            <Elem>lar_vision_commons_EXPORTS</Elem>
-          </preprocessorList>
         </ccTool>
       </folder>
       <folder path="0/src/grasping">
@@ -429,105 +211,8 @@
       </folder>
       <folder path="src">
         <ccTool>
-          <preprocessorList>
-            <Elem>ROS_PACKAGE_NAME="lwr_controllers"</Elem>
-          </preprocessorList>
-        </ccTool>
-      </folder>
-      <folder path="src/kuka-lwr">
-        <ccTool>
           <incDir>
             <pElem>../../../devel/include</pElem>
-            <pElem>../../kuka-lwr/lwr_controllers/include</pElem>
-            <pElem>/opt/ros/indigo/include</pElem>
-            <pElem>/usr/include/opencv</pElem>
-            <pElem>/usr/include/eigen3</pElem>
-            <pElem>/usr/include/pcl-1.7</pElem>
-            <pElem>/usr/include/ni</pElem>
-            <pElem>/usr/include/vtk-5.8</pElem>
-            <pElem>/usr/local/include/pcl-1.8</pElem>
-            <pElem>/usr/local/include/opencv</pElem>
-            <pElem>/usr/local/include</pElem>
-            <pElem>../../../build/kuka-lwr/lwr_testing</pElem>
-          </incDir>
-        </ccTool>
-      </folder>
-      <folder path="src/kuka-lwr/lwr_controllers">
-        <ccTool>
-          <incDir>
-            <pElem>../../../build/kuka-lwr/lwr_controllers</pElem>
-          </incDir>
-          <preprocessorList>
-            <Elem>lwr_controllers_EXPORTS</Elem>
-          </preprocessorList>
-        </ccTool>
-      </folder>
-      <folder path="src/kuka-lwr/lwr_hw">
-        <ccTool>
-          <incDir>
-            <pElem>../../kuka-lwr/lwr_hw/include</pElem>
-            <pElem>../../../devel/include/fril</pElem>
-            <pElem>/usr/include/gazebo-6.5</pElem>
-            <pElem>/usr/include/sdformat-3.6</pElem>
-            <pElem>/usr/include/ignition/math2</pElem>
-            <pElem>/usr/include/OGRE</pElem>
-            <pElem>/usr/include/OGRE/Terrain</pElem>
-            <pElem>/usr/include/OGRE/Paging</pElem>
-            <pElem>../../../build/kuka-lwr/lwr_hw</pElem>
-          </incDir>
-          <preprocessorList>
-            <Elem>ROS_PACKAGE_NAME="lwr_hw"</Elem>
-          </preprocessorList>
-        </ccTool>
-      </folder>
-      <folder path="src/kuka-lwr/lwr_hw/src/fri">
-        <ccTool>
-          <preprocessorList>
-            <Elem>friremote_EXPORTS</Elem>
-          </preprocessorList>
-        </ccTool>
-      </folder>
-      <folder path="src/kuka-lwr/lwr_testing">
-        <ccTool>
-          <preprocessorList>
-            <Elem>DISABLE_DAVIDSDK</Elem>
-            <Elem>DISABLE_ENSENSO</Elem>
-            <Elem>DISABLE_OPENNI2</Elem>
-            <Elem>DISABLE_PCAP</Elem>
-            <Elem>DISABLE_PNG</Elem>
-            <Elem>EIGEN_USE_NEW_STDVECTOR</Elem>
-            <Elem>EIGEN_YES_I_KNOW_SPARSE_MODULE_IS_NOT_STABLE_YET</Elem>
-            <Elem>FLANN_STATIC</Elem>
-            <Elem>ROS_PACKAGE_NAME="lwr_testing"</Elem>
-            <Elem>qh_QHpointer</Elem>
-          </preprocessorList>
-        </ccTool>
-      </folder>
-      <folder path="src/lar_tools">
-        <ccTool>
-          <incDir>
-            <pElem>/opt/ros/indigo/include</pElem>
-            <pElem>/usr/include/eigen3</pElem>
-            <pElem>../../lar_tools/EIGEN3_INCLUDE_DIR</pElem>
-            <pElem>../../lar_tools/include</pElem>
-            <pElem>../../lar_tools/include/lar_tool_utils</pElem>
-            <pElem>../../../build/lar_tools</pElem>
-          </incDir>
-          <preprocessorList>
-            <Elem>ROS_PACKAGE_NAME="lar_tools"</Elem>
-          </preprocessorList>
-        </ccTool>
-      </folder>
-      <folder path="src/lar_tools/src/lar_tool_utils">
-        <ccTool>
-          <preprocessorList>
-            <Elem>lar_tools_EXPORTS</Elem>
-          </preprocessorList>
-        </ccTool>
-      </folder>
-      <folder path="src/trimod_gripper">
-        <ccTool>
-          <incDir>
             <pElem>/usr/include/vtk-5.8</pElem>
             <pElem>/usr/local/include/pcl-1.8</pElem>
             <pElem>/usr/include/eigen3</pElem>
@@ -537,26 +222,22 @@
             <pElem>../../lar_tools/include</pElem>
             <pElem>../../lar_tools/include/lar_tool_utils</pElem>
             <pElem>/opt/ros/indigo/include</pElem>
-            <pElem>../../../devel/include</pElem>
-            <pElem>../../kuka-lwr/lwr_controllers/include</pElem>
+            <pElem>../include</pElem>
+            <pElem>../include/lar_vision</pElem>
+            <pElem>../include/lar_vision/commons</pElem>
+            <pElem>../include/lar_vision/segmentation</pElem>
+            <pElem>../include/lar_vision/grasping</pElem>
+            <pElem>../include/lar_vision/grasping/grippers</pElem>
             <pElem>/usr/include/opencv</pElem>
             <pElem>/usr/include/pcl-1.7</pElem>
+            <pElem>../../kuka-lwr/lwr_controllers/include</pElem>
             <pElem>../../trimod_gripper/cmake/Modules</pElem>
             <pElem>../../trimod_gripper/include</pElem>
             <pElem>../../trimod_gripper/include/utils</pElem>
             <pElem>../../../build/trimod_gripper</pElem>
           </incDir>
           <preprocessorList>
-            <Elem>DISABLE_DAVIDSDK</Elem>
-            <Elem>DISABLE_ENSENSO</Elem>
-            <Elem>DISABLE_OPENNI2</Elem>
-            <Elem>DISABLE_PCAP</Elem>
-            <Elem>DISABLE_PNG</Elem>
-            <Elem>EIGEN_USE_NEW_STDVECTOR</Elem>
-            <Elem>EIGEN_YES_I_KNOW_SPARSE_MODULE_IS_NOT_STABLE_YET</Elem>
-            <Elem>FLANN_STATIC</Elem>
             <Elem>ROS_PACKAGE_NAME="trimod_gripper"</Elem>
-            <Elem>qh_QHpointer</Elem>
           </preprocessorList>
         </ccTool>
       </folder>
