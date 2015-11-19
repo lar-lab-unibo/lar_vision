@@ -68,7 +68,7 @@ int main(int argc, char** argv) {
         ros::NodeHandle nh("~");
 
         std::string out_dir = "/home/daniele/temp/";
-        std::string path = "/home/daniele/temp/drill_noise/";
+        std::string path = "/home/daniele/temp/temp_clouds/";
 
         nh.param<bool>("simple_merge", do_simple_merge, false);
         nh.param<bool>("cloud_noise", cloud_noise, false);
