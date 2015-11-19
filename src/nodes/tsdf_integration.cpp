@@ -49,8 +49,17 @@ double integrate_color = true;
 double trunc_dist_pos = 0.01;
 double trunc_dist_neg = 0.01;
 double min_weight = 0;
+bool cloud_noise = true;
+bool camera_noise = true;
 bool do_simple_merge = false;
 double leaf = 0.01f;
+
+double camera_error_x = 0;
+double camera_error_y = 0;
+double camera_error_z = 0;
+double camera_error_roll = 0;
+double camera_error_pitch = 0;
+double camera_error_yaw = 0;
 
 int main(int argc, char** argv) {
 
@@ -59,9 +68,20 @@ int main(int argc, char** argv) {
         ros::NodeHandle nh("~");
 
         std::string out_dir = "/home/daniele/temp/";
-        std::string path = "/home/daniele/temp/table_top_simulated/";
+        std::string path = "/home/daniele/temp/drill_noise/";
 
         nh.param<bool>("simple_merge", do_simple_merge, false);
+        nh.param<bool>("cloud_noise", cloud_noise, false);
+        nh.param<bool>("camera_noise", camera_noise, false);
+
+
+        nh.param<double>("camera_error_x", camera_error_x, 0.0);
+        nh.param<double>("camera_error_y", camera_error_y, 0.0);
+        nh.param<double>("camera_error_z", camera_error_z, 0.0);
+        nh.param<double>("camera_error_roll", camera_error_roll, 0.0);
+        nh.param<double>("camera_error_pitch", camera_error_pitch, 0.0);
+        nh.param<double>("camera_error_yaw", camera_error_yaw, 0.0);
+
 
         nh.param<double>("tsdf_size", tsdf_size, 1.0);
         nh.param<double>("cell_size", cell_size, 0.01);
@@ -77,6 +97,18 @@ int main(int argc, char** argv) {
 
         nh.param<double>("leaf", leaf, 0.01);
 
+        std::string cloud_suffix = cloud_noise ? "_noise" : "";
+
+        Eigen::Matrix4d camera_error_matrix;
+        lar_tools::create_eigen_4x4_d(
+           (float)camera_error_x,
+           (float)camera_error_y,
+           (float)camera_error_z,
+           (float)camera_error_roll,
+           (float)camera_error_pitch,
+           (float)camera_error_yaw,
+           camera_error_matrix
+        );
 
         if(!do_simple_merge) {
                 int desired_res = tsdf_size / cell_size;
@@ -105,17 +137,27 @@ int main(int argc, char** argv) {
 
                 Eigen::Matrix4d pose_0;
                 int i = 0;
-                for(;;) {
+                for(;; ) {
 
-                        std::string pose_filename = path + boost::lexical_cast<std::string>(i) + ".txt";
-                        std::string cloud_filename = path + boost::lexical_cast<std::string>(i) + ".pcd";
+
+                        std::string pose_filename = path + boost::lexical_cast<std::string>(i) +".txt";
+                        std::string pose_robot_filename = path + boost::lexical_cast<std::string>(i) + "_robot.txt";
+                        std::string pose_ee_filename = path + boost::lexical_cast<std::string>(i) + "_ee.txt";
+                        std::string cloud_filename = path + boost::lexical_cast<std::string>(i) +cloud_suffix+ ".pcd";
 
                         pcl::PointCloud<PointType>::Ptr cloud(new pcl::PointCloud<PointType>());
                         pcl::PointCloud<PointType>::Ptr cloud_trans(new pcl::PointCloud<PointType>());
-                        Eigen::Matrix4d pose;
+                        Eigen::Matrix4d pose = lar_tools::load_transform_4x4_d(pose_filename);
+                        Eigen::Matrix4d pose_robot= lar_tools::load_transform_4x4_d(pose_robot_filename);;
+                        Eigen::Matrix4d pose_ee= lar_tools::load_transform_4x4_d(pose_ee_filename);;
 
-                        std::cout << "Loading Pose\n";
-                        pose = lar_tools::load_transform_4x4_d(pose_filename);
+                        if(camera_noise){
+                          std::cout << "Pose error:\n"<<camera_error_matrix<<std::endl;
+                          pose_ee = pose_ee * camera_error_matrix;
+
+                          pose = pose_robot * pose_ee;
+                        }
+
                         if(i==0) {
                                 pose_0 = pose;
                         }
@@ -123,8 +165,8 @@ int main(int argc, char** argv) {
                         tr  =   pose_0.inverse () * pose;
 
                         std::cout << "Loading Cloud\n";
-                        if(pcl::io::loadPCDFile (cloud_filename, *cloud)==-1){
-                          break;
+                        if(pcl::io::loadPCDFile (cloud_filename, *cloud)==-1) {
+                                break;
                         }
 
                         cloud->width = width_;
@@ -171,43 +213,43 @@ int main(int argc, char** argv) {
 
                 pcl::PointCloud<PointType>::Ptr cloud_out(new pcl::PointCloud<PointType>);
                 pcl::fromPCLPointCloud2(mesh->cloud, *cloud_out);
-                pcl::io::savePCDFileBinary(out_dir + "/mesh.pcd", *cloud_out);
-                pcl::io::savePLYFileBinary(out_dir + "/mesh.ply", *mesh);
+                pcl::io::savePCDFileBinary(out_dir + "/mesh"+cloud_suffix+".pcd", *cloud_out);
+                pcl::io::savePLYFileBinary(out_dir + "/mesh"+cloud_suffix+".ply", *mesh);
 
                 PCL_INFO ("Saved to %s/mesh.ply\n", out_dir.c_str ());
 
         }else{
-          pcl::PointCloud<PointType>::Ptr full_filtered(new pcl::PointCloud<PointType>());
-          int i = 0;
-          for(;;) {
+                pcl::PointCloud<PointType>::Ptr full_filtered(new pcl::PointCloud<PointType>());
+                int i = 0;
+                for(;; ) {
 
-                  std::string pose_filename = path + boost::lexical_cast<std::string>(i) + ".txt";
-                  std::string cloud_filename = path + boost::lexical_cast<std::string>(i) + ".pcd";
+                        std::string pose_filename = path + boost::lexical_cast<std::string>(i) + ".txt";
+                        std::string cloud_filename = path + boost::lexical_cast<std::string>(i) +cloud_suffix+ ".pcd";
 
-                  pcl::PointCloud<PointType>::Ptr cloud(new pcl::PointCloud<PointType>());
-                  pcl::PointCloud<PointType>::Ptr cloud_trans(new pcl::PointCloud<PointType>());
-                  Eigen::Matrix4d pose;
+                        pcl::PointCloud<PointType>::Ptr cloud(new pcl::PointCloud<PointType>());
+                        pcl::PointCloud<PointType>::Ptr cloud_trans(new pcl::PointCloud<PointType>());
+                        Eigen::Matrix4d pose;
 
-                  std::cout << "Loading Pose\n";
-                  pose = lar_tools::load_transform_4x4_d(pose_filename);
+                        std::cout << "Loading Pose\n";
+                        pose = lar_tools::load_transform_4x4_d(pose_filename);
 
-                  std::cout << "Loading Cloud\n";
-                  if(pcl::io::loadPCDFile (cloud_filename, *cloud)==-1){
-                    break;
-                  }
+                        std::cout << "Loading Cloud\n";
+                        if(pcl::io::loadPCDFile (cloud_filename, *cloud)==-1) {
+                                break;
+                        }
 
-                  pcl::transformPointCloud(*cloud, *cloud_trans, pose);
-                  (*full_filtered) += (*cloud_trans);
+                        pcl::transformPointCloud(*cloud, *cloud_trans, pose);
+                        (*full_filtered) += (*cloud_trans);
 
-                  pcl::VoxelGrid<PointType> sor;
-                  sor.setInputCloud (full_filtered);
-                  sor.setLeafSize (leaf,leaf,leaf);
-                  sor.filter (*full_filtered);
+                        pcl::VoxelGrid<PointType> sor;
+                        sor.setInputCloud (full_filtered);
+                        sor.setLeafSize (leaf,leaf,leaf);
+                        sor.filter (*full_filtered);
 
-                  i++;
-          }
+                        i++;
+                }
 
-            pcl::io::savePCDFileBinary(out_dir + "/simple_merge.pcd", *full_filtered);
+                pcl::io::savePCDFileBinary(out_dir + "/simple_merge"+cloud_suffix+".pcd", *full_filtered);
 
 
         }
