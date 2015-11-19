@@ -7,7 +7,6 @@
         </df>
         <df name="samples">
         </df>
-        <in>diary.txt</in>
       </df>
       <df name="include">
         <df name="lar_vision">
@@ -15,12 +14,27 @@
             <in>Noiser.h</in>
             <in>lar_vision_commons.h</in>
           </df>
+          <df name="eigen_extensions">
+            <in>eigen_extensions.h</in>
+          </df>
           <df name="grasping">
             <df name="grippers">
               <in>GraspingGripper.h</in>
             </df>
             <in>Grasper.h</in>
             <in>Slicer.h</in>
+          </df>
+          <df name="reconstruction">
+            <df name="tsdf">
+              <df name="impl">
+                <in>tsdf_volume_octree.hpp</in>
+              </df>
+              <in>marching_cubes_tsdf_octree.h</in>
+              <in>octree.h</in>
+              <in>tsdf_interface.h</in>
+              <in>tsdf_volume_octree.h</in>
+              <in>tsdf_volume_octree.hpp</in>
+            </df>
           </df>
           <df name="segmentation">
             <in>HighMap.h</in>
@@ -47,6 +61,15 @@
         <df name="nodes">
           <in>height_map_segmentation_rf.cpp</in>
           <in>testing_node.cpp</in>
+          <in>tsdf_integration.cpp</in>
+        </df>
+        <df name="reconstruction">
+          <df name="tsdf">
+            <in>marching_cubes_tsdf_octree.cpp</in>
+            <in>octree.cpp</in>
+            <in>tsdf_interface.cpp</in>
+            <in>tsdf_volume_octree.cpp</in>
+          </df>
         </df>
         <df name="segmentation">
           <in>HighMap.cpp</in>
