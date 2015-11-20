@@ -43,9 +43,9 @@ find_package(lar_tools)
 include_directories(${lar_tools_INCLUDE_DIRS})
 
 
+##########################################################################
 
-
-
+#Includes
 include_directories(
   ${catkin_INCLUDE_DIRS}
   include/${PROJECT_NAME}/
@@ -56,6 +56,13 @@ include_directories(
   include/${PROJECT_NAME}/reconstruction
 )
 
+
+#Configurations
+generate_dynamic_reconfigure_options(
+  cfg/match_clouds.cfg
+)
+
+#Packaging
 catkin_package(
   INCLUDE_DIRS
     include/
@@ -65,7 +72,6 @@ catkin_package(
     include/${PROJECT_NAME}/grasping
     include/${PROJECT_NAME}/grasping/grippers
     include/${PROJECT_NAME}/reconstruction
-#  INCLUDE_DIRS include
    LIBRARIES ${PROJECT_NAME}
    CATKIN_DEPENDS cv_bridge image_transport pcl_ros roscpp rospy
 #  DEPENDS system_lib
@@ -98,6 +104,7 @@ target_link_libraries(${PROJECT_NAME}_planar_grasp_test ${catkin_LIBRARIES} lar_
 # match_clouds
 add_executable(${PROJECT_NAME}_match_clouds  src/nodes/match_clouds.cpp)
 target_link_libraries(${PROJECT_NAME}_match_clouds ${catkin_LIBRARIES} lar_vision lar_tools)
+add_dependencies(${PROJECT_NAME}_match_clouds ${PROJECT_NAME}_gencfg)
 
 
 # height_map_segmentation_rf

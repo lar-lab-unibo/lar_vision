@@ -25,6 +25,7 @@
 
 #include "tsdf/tsdf_volume_octree.h"
 #include "tsdf/marching_cubes_tsdf_octree.h"
+#include "Noiser.h"
 
 #define GRIPPER_STATUS_PARALLEL 0
 #define GRIPPER_STATUS_TRIPOD 1
@@ -61,18 +62,27 @@ double camera_error_roll = 0;
 double camera_error_pitch = 0;
 double camera_error_yaw = 0;
 
+int frame_jumps = 1;
+bool more_noise = false;
+
 int main(int argc, char** argv) {
 
         // Initialize ROS
         lar_tools::init_ros_node(argc, argv, "tesing_node");
         ros::NodeHandle nh("~");
 
-        std::string out_dir = "/home/daniele/temp/";
-        std::string path = "/home/daniele/temp/temp_clouds/";
+        std::string out_dir = "~/temp/";
 
+        std::string path = "~/temp/temp_clouds/";
+        std::string output_name = "merge_results";
+
+        nh.param<std::string>("folder", path, "~/temp/temp_clouds/");
+        nh.param<std::string>("output_name", output_name,"merge_results");
+        nh.param<std::string>("out_folder", out_dir,"~/temp/");
         nh.param<bool>("simple_merge", do_simple_merge, false);
         nh.param<bool>("cloud_noise", cloud_noise, false);
         nh.param<bool>("camera_noise", camera_noise, false);
+        nh.param<bool>("more_noise", more_noise, false);
 
 
         nh.param<double>("camera_error_x", camera_error_x, 0.0);
@@ -96,19 +106,22 @@ int main(int argc, char** argv) {
         nh.param<double>("cy", principal_point_y_, 239.5);
 
         nh.param<double>("leaf", leaf, 0.01);
+        nh.param<int>("frame_jumps", frame_jumps, 1);
+        int total_perc_n = 100/frame_jumps;
+        std::string total_perc = boost::lexical_cast<std::string>(total_perc_n);
 
         std::string cloud_suffix = cloud_noise ? "_noise" : "";
 
         Eigen::Matrix4d camera_error_matrix;
         lar_tools::create_eigen_4x4_d(
-           (float)camera_error_x,
-           (float)camera_error_y,
-           (float)camera_error_z,
-           (float)camera_error_roll,
-           (float)camera_error_pitch,
-           (float)camera_error_yaw,
-           camera_error_matrix
-        );
+                (float)camera_error_x,
+                (float)camera_error_y,
+                (float)camera_error_z,
+                (float)camera_error_roll,
+                (float)camera_error_pitch,
+                (float)camera_error_yaw,
+                camera_error_matrix
+                );
 
         if(!do_simple_merge) {
                 int desired_res = tsdf_size / cell_size;
@@ -151,11 +164,11 @@ int main(int argc, char** argv) {
                         Eigen::Matrix4d pose_robot= lar_tools::load_transform_4x4_d(pose_robot_filename);;
                         Eigen::Matrix4d pose_ee= lar_tools::load_transform_4x4_d(pose_ee_filename);;
 
-                        if(camera_noise){
-                          std::cout << "Pose error:\n"<<camera_error_matrix<<std::endl;
-                          pose_ee = pose_ee * camera_error_matrix;
+                        if(camera_noise) {
+                                std::cout << "Pose error:\n"<<camera_error_matrix<<std::endl;
+                                pose_ee = pose_ee * camera_error_matrix;
 
-                          pose = pose_robot * pose_ee;
+                                pose = pose_robot * pose_ee;
                         }
 
                         if(i==0) {
@@ -167,6 +180,15 @@ int main(int argc, char** argv) {
                         std::cout << "Loading Cloud\n";
                         if(pcl::io::loadPCDFile (cloud_filename, *cloud)==-1) {
                                 break;
+                        }
+
+                        if(more_noise) {
+                                Noiser noiser;
+                                noiser.axial_coefficient=0.1;
+                                noiser.setCloud(cloud);
+                                pcl::PointCloud<PointType>::Ptr cloud_noise(new pcl::PointCloud<PointType>());
+                                noiser.addNoise(cloud_noise);
+                                cloud=cloud_noise;
                         }
 
                         cloud->width = width_;
@@ -182,7 +204,7 @@ int main(int argc, char** argv) {
                         tsdf->integrateCloud (*cloud, pcl::PointCloud<pcl::Normal> (),tr);
 
                         std::cout << pose_filename << "\n"<<cloud_filename<<"\n\n";
-                        i++;
+                        i+=frame_jumps;
                 }
 
 
@@ -213,8 +235,9 @@ int main(int argc, char** argv) {
 
                 pcl::PointCloud<PointType>::Ptr cloud_out(new pcl::PointCloud<PointType>);
                 pcl::fromPCLPointCloud2(mesh->cloud, *cloud_out);
-                pcl::io::savePCDFileBinary(out_dir + "/mesh"+cloud_suffix+".pcd", *cloud_out);
-                pcl::io::savePLYFileBinary(out_dir + "/mesh"+cloud_suffix+".ply", *mesh);
+                pcl::transformPointCloud(*cloud_out,*cloud_out,pose_0);
+                pcl::io::savePCDFileBinary(out_dir + "/" +output_name+"_tsdf_"+total_perc+cloud_suffix+".pcd", *cloud_out);
+                pcl::io::savePLYFileBinary(out_dir + "/" +output_name+"_tsdf_mesh_"+total_perc+cloud_suffix+".ply", *mesh);
 
                 PCL_INFO ("Saved to %s/mesh.ply\n", out_dir.c_str ());
 
@@ -238,6 +261,16 @@ int main(int argc, char** argv) {
                                 break;
                         }
 
+                        if(more_noise) {
+                                Noiser noiser;
+                                noiser.axial_coefficient=0.1;
+                                noiser.axial_offset =0;
+                                noiser.setCloud(cloud);
+                                pcl::PointCloud<PointType>::Ptr cloud_noise(new pcl::PointCloud<PointType>());
+                                noiser.addNoise(cloud_noise);
+                                cloud=cloud_noise;
+                        }
+
                         pcl::transformPointCloud(*cloud, *cloud_trans, pose);
                         (*full_filtered) += (*cloud_trans);
 
@@ -246,10 +279,10 @@ int main(int argc, char** argv) {
                         sor.setLeafSize (leaf,leaf,leaf);
                         sor.filter (*full_filtered);
 
-                        i++;
+                        i+=frame_jumps;
                 }
 
-                pcl::io::savePCDFileBinary(out_dir + "/simple_merge"+cloud_suffix+".pcd", *full_filtered);
+                pcl::io::savePCDFileBinary(out_dir + "/" +output_name+"_merge_"+total_perc+cloud_suffix+".pcd", *full_filtered);
 
 
         }
