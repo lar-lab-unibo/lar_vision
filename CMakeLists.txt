@@ -91,9 +91,14 @@ target_link_libraries (lar_vision ${catkin_LIBRARIES} ${OpenCV_LIBS} ${PCL_LIBRA
 
 #NODES
 
-# TESTING NODE
-add_executable(${PROJECT_NAME}_testing_node  src/nodes/testing_node.cpp)
-target_link_libraries(${PROJECT_NAME}_testing_node ${catkin_LIBRARIES} lar_vision lar_tools)
+# planar_grasp_test
+add_executable(${PROJECT_NAME}_planar_grasp_test  src/nodes/planar_grasp_test.cpp)
+target_link_libraries(${PROJECT_NAME}_planar_grasp_test ${catkin_LIBRARIES} lar_vision lar_tools)
+
+# match_clouds
+add_executable(${PROJECT_NAME}_match_clouds  src/nodes/match_clouds.cpp)
+target_link_libraries(${PROJECT_NAME}_match_clouds ${catkin_LIBRARIES} lar_vision lar_tools)
+
 
 # height_map_segmentation_rf
 add_executable(${PROJECT_NAME}_height_map_segmentation_rf  src/nodes/height_map_segmentation_rf.cpp)

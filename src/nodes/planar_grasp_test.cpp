@@ -133,7 +133,7 @@ void CallBackFunc(int event, int x, int y, int flags, void* userdata) {
 int main(int argc, char** argv) {
 
     // Initialize ROS
-    lar_tools::init_ros_node(argc, argv, "tesing_node");
+    lar_tools::init_ros_node(argc, argv, "planar_grasp_test");
     ros::NodeHandle nh("~");
 
     nh.param<double>("w", w, 800);
