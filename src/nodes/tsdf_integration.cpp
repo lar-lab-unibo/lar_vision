@@ -14,6 +14,7 @@
 #include <pcl/io/vtk_lib_io.h>
 #include <pcl/filters/voxel_grid.h>
 #include <pcl/filters/passthrough.h>
+#include <pcl/filters/passthrough.h>
 
 #include "lar_tools.h"
 #include "lar_vision_commons.h"
@@ -260,6 +261,12 @@ int main(int argc, char** argv) {
                         if(pcl::io::loadPCDFile (cloud_filename, *cloud)==-1) {
                                 break;
                         }
+
+                        pcl::PassThrough<PointType> pass;
+                        pass.setInputCloud (cloud);
+                        pass.setFilterFieldName ("z");
+                        pass.setFilterLimits (min_sensor_dist,max_sensor_dist);
+                        pass.filter (*cloud);
 
                         if(more_noise) {
                                 Noiser noiser;

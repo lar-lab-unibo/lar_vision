@@ -51,6 +51,8 @@ pcl::PointCloud<PointType>::Ptr cloud_boxed(new pcl::PointCloud<PointType>);
 pcl::PointCloud<PointType>::Ptr cloud2_boxed(new pcl::PointCloud<PointType>);
 pcl::visualization::PCLVisualizer* viewer;
 bool compute_difference = true;
+bool export_solid = false;
+
 
 void boxCloud(pcl::PointCloud<PointType>::Ptr& cloud,pcl::PointCloud<PointType>::Ptr& cloud_boxed){
 
@@ -113,9 +115,9 @@ void showClouds(){
                                 color = 255*((norm)/0.01f);
                                 color2 = 255*(1.0f-(norm)/0.01f);
                                 counter += 1.0f;
-                                search_p.r = color;
+                                search_p.r = 0;
                                 search_p.g = color2;
-                                search_p.b = 0;
+                                search_p.b = color;
                                 cloud_diff->points.push_back(search_p);
                         }
 
@@ -161,6 +163,8 @@ int main(int argc, char** argv) {
 
         nh->param<std::string>("cloud", cloud_path, "");
         nh->param<std::string>("cloud_2", cloud2_path, "");
+        nh->param<bool>("diff", compute_difference, false);
+        nh->param<bool>("export_solid", export_solid, false);
 
 
         viewer = new pcl::visualization::PCLVisualizer("viewer");
@@ -187,8 +191,11 @@ int main(int argc, char** argv) {
                 ros::spinOnce();
         }
 
-        if(compute_difference)
-          pcl::io::savePCDFileBinary("/home/daniele/temp/cloud_diff.pcd", *cloud_diff);
-
+        if(export_solid) {
+                        pcl::io::savePCDFileBinary("/home/daniele/temp/cloud_solid.pcd", *cloud_boxed);
+        }else{
+                if(compute_difference)
+                        pcl::io::savePCDFileBinary("/home/daniele/temp/cloud_diff.pcd", *cloud_diff);
+        }
         return 0;
 }
