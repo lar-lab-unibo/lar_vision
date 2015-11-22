@@ -69,7 +69,7 @@ bool more_noise = false;
 int main(int argc, char** argv) {
 
         // Initialize ROS
-        lar_tools::init_ros_node(argc, argv, "tesing_node");
+        lar_tools::init_ros_node(argc, argv, "tsdf_integration");
         ros::NodeHandle nh("~");
 
         std::string out_dir = "~/temp/";
@@ -240,6 +240,7 @@ int main(int argc, char** argv) {
                 pcl::io::savePCDFileBinary(out_dir + "/" +output_name+"_tsdf_"+total_perc+cloud_suffix+".pcd", *cloud_out);
                 pcl::io::savePLYFileBinary(out_dir + "/" +output_name+"_tsdf_mesh_"+total_perc+cloud_suffix+".ply", *mesh);
 
+                tsdf->save(out_dir + "/" +output_name+"_tsdf_mesh_"+total_perc+cloud_suffix+".tsdf");
                 PCL_INFO ("Saved to %s/mesh.ply\n", out_dir.c_str ());
 
         }else{

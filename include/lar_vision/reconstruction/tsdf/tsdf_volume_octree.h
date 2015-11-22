@@ -209,6 +209,14 @@ namespace lar_vision
     void
     load (const std::string &filename);
 
+    /** \brief OctreeNodes as list */
+    void
+    nodeList (std::vector<OctreeNode::Ptr>& nodes_out);
+
+    /** \brief OctreeNode deep search */
+    void
+    deepSearch (OctreeNode::Ptr& node, std::vector<OctreeNode::Ptr>& nodes_out);
+
     /** \brief Accessor to trilinearly interpolated distance */
     bool
     getFxn (const pcl::PointXYZ &pt, float &val) const;

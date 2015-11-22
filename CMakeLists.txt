@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(lar_vision)
 
+set(CMAKE_CXX_FLAGS "-std=c++0x ${CMAKE_CXX_FLAGS}")
+
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
@@ -11,7 +13,6 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
 )
-
 
 #PCL
 find_package(PCL 1.7 REQUIRED  )
@@ -114,3 +115,7 @@ target_link_libraries(${PROJECT_NAME}_height_map_segmentation_rf ${catkin_LIBRAR
 # TSDF INTEGRATION
 add_executable(${PROJECT_NAME}_tsdf_integration  src/nodes/tsdf_integration.cpp)
 target_link_libraries(${PROJECT_NAME}_tsdf_integration ${catkin_LIBRARIES} lar_vision lar_tools)
+
+# TSDF ANALYZER
+add_executable(${PROJECT_NAME}_tsdf_analyzer  src/nodes/tsdf_analyzer.cpp)
+target_link_libraries(${PROJECT_NAME}_tsdf_analyzer ${catkin_LIBRARIES} lar_vision lar_tools)
