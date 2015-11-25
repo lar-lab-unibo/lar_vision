@@ -57,7 +57,8 @@ Eigen::Matrix4d correction;
 pcl::visualization::PCLVisualizer* viewer;
 bool compute_difference = true;
 bool export_solid = false;
-
+int views = 5;
+int slots = 30;
 
 
 void showClouds(){
@@ -97,7 +98,7 @@ void callback(lar_vision::CameraErrorReductionConfig& config, uint32_t level) {
         ROS_INFO("Reconfigure Request:");
 
         min_z = config.min_z;
-        max_z = config.max_z;  
+        max_z = config.max_z;
 
         lar_tools::create_eigen_4x4_d(
           config.x,
@@ -124,7 +125,8 @@ int main(int argc, char** argv) {
         std::string output_name = "merge_results";
 
         nh->param<std::string>("folder", path, "~/temp/temp_clouds/");
-
+        nh->param<int>("views", views, 5);
+        nh->param<int>("slots", slots, 30);
 
         lar_tools::create_eigen_4x4_d(
           0,0,0,
@@ -134,19 +136,30 @@ int main(int argc, char** argv) {
 
         viewer = new pcl::visualization::PCLVisualizer("viewer");
 
+        int i = 0 ;
+        int index = 0;
         //Load
-        for(int i =0; i < 5; i++) {
+        for(;;) {
                 std::string cloud_path = path +"/"+ boost::lexical_cast<std::string>(i) +".pcd";
                 std::string robot_pose_path = path +"/"+ boost::lexical_cast<std::string>(i) +"_robot.txt";
                 std::string ee_pose_path = path +"/"+ boost::lexical_cast<std::string>(i) +"_ee.txt";
+                ROS_INFO("Loading cloud: %s",cloud_path.c_str());
+                ROS_INFO("Loading robot pose: %s",robot_pose_path.c_str());
+                ROS_INFO("Loading ee pose: %s",ee_pose_path.c_str());
+                ROS_INFO("=======");
 
-                clouds.push_back(pcl::PointCloud<PointType>::Ptr (new pcl::PointCloud<PointType>()));
-                pcl::io::loadPCDFile<PointType> (cloud_path, *clouds[i]);
+                pcl::PointCloud<PointType>::Ptr cloud(new pcl::PointCloud<PointType>);
+                pcl::io::loadPCDFile<PointType> (cloud_path, *cloud);
+                clouds.push_back(cloud);
 
                 Eigen::Matrix4d robot_pose = lar_tools::load_transform_4x4_d(robot_pose_path);
                 Eigen::Matrix4d ee_pose = lar_tools::load_transform_4x4_d(ee_pose_path);
                 robot_poses.push_back(robot_pose);
                 ee_poses.push_back(ee_pose);
+
+                i+=slots;
+                views--;
+                if(views<=0)break;
         }
 
         showClouds();

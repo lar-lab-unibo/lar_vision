@@ -112,7 +112,7 @@ logNormal (float x, float mean, float var)
 // Returns 0 iff no measurement taken, 1 if a valid measurement was found, -1 if observed to be empty
 template <typename PointT, typename NormalT> int
 lar_vision::TSDFVolumeOctree::updateVoxel (
-    const lar_vision::OctreeNode::Ptr &voxel, 
+    const lar_vision::OctreeNode::Ptr &voxel,
     const pcl::PointCloud<PointT> &cloud,
     const pcl::PointCloud<NormalT> &normals,
     const Eigen::Affine3f &trans_inv)

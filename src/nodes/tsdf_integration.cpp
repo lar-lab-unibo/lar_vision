@@ -148,7 +148,7 @@ int main(int argc, char** argv) {
 
 
 
-
+                ROS_INFO("Start integration...");
                 Eigen::Matrix4d pose_0;
                 int i = 0;
                 for(;; ) {
@@ -201,7 +201,7 @@ int main(int argc, char** argv) {
                                 return (1);
                         }
 
-                        std::cout << "Integrating...\n";
+
                         tsdf->integrateCloud (*cloud, pcl::PointCloud<pcl::Normal> (),tr);
 
                         std::cout << pose_filename << "\n"<<cloud_filename<<"\n\n";
