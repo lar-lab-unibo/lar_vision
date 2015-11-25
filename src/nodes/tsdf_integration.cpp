@@ -237,11 +237,18 @@ int main(int argc, char** argv) {
                 pcl::PointCloud<PointType>::Ptr cloud_out(new pcl::PointCloud<PointType>);
                 pcl::fromPCLPointCloud2(mesh->cloud, *cloud_out);
                 pcl::transformPointCloud(*cloud_out,*cloud_out,pose_0);
-                pcl::io::savePCDFileBinary(out_dir + "/" +output_name+"_tsdf_"+total_perc+cloud_suffix+".pcd", *cloud_out);
-                pcl::io::savePLYFileBinary(out_dir + "/" +output_name+"_tsdf_mesh_"+total_perc+cloud_suffix+".ply", *mesh);
 
-                tsdf->save(out_dir + "/" +output_name+"_tsdf_mesh_"+total_perc+cloud_suffix+".tsdf");
-                PCL_INFO ("Saved to %s/mesh.ply\n", out_dir.c_str ());
+                std::string pcd_out_filename = out_dir + "/" +output_name+"_tsdf_"+total_perc+cloud_suffix+".pcd";
+                std::string ply_out_filename = out_dir + "/" +output_name+"_tsdf_mesh_"+total_perc+cloud_suffix+".ply";
+                std::string tsdf_out_filename = out_dir + "/" +output_name+"_tsdf_mesh_"+total_perc+cloud_suffix+".tsdf";
+
+                ROS_INFO("Writing PCD: %s",pcd_out_filename.c_str());
+                ROS_INFO("Writing PLY: %s",ply_out_filename.c_str());
+                ROS_INFO("Writing TSDF: %s",tsdf_out_filename.c_str());
+
+                pcl::io::savePCDFileBinary(pcd_out_filename, *cloud_out);
+                pcl::io::savePLYFileBinary(ply_out_filename, *mesh);
+                tsdf->save(tsdf_out_filename);
 
         }else{
                 pcl::PointCloud<PointType>::Ptr full_filtered(new pcl::PointCloud<PointType>());

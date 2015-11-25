@@ -61,6 +61,7 @@ include_directories(
 #Configurations
 generate_dynamic_reconfigure_options(
   cfg/match_clouds.cfg
+  cfg/camera_error_reduction.cfg
 )
 
 #Packaging
@@ -106,6 +107,11 @@ target_link_libraries(${PROJECT_NAME}_planar_grasp_test ${catkin_LIBRARIES} lar_
 add_executable(${PROJECT_NAME}_match_clouds  src/nodes/match_clouds.cpp)
 target_link_libraries(${PROJECT_NAME}_match_clouds ${catkin_LIBRARIES} lar_vision lar_tools)
 add_dependencies(${PROJECT_NAME}_match_clouds ${PROJECT_NAME}_gencfg)
+
+# _camera_error_reduction
+add_executable(${PROJECT_NAME}_camera_error_reduction  src/nodes/camera_error_reduction.cpp)
+target_link_libraries(${PROJECT_NAME}_camera_error_reduction ${catkin_LIBRARIES} lar_vision lar_tools)
+add_dependencies(${PROJECT_NAME}_camera_error_reduction ${PROJECT_NAME}_gencfg)
 
 
 # height_map_segmentation_rf
