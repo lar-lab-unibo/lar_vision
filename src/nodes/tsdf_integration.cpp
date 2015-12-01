@@ -37,6 +37,11 @@ using namespace lar_vision;
 
 int width_ = 640;
 int height_ = 480;
+int crop_width = width_;
+int crop_height = height_;
+double offx = 0;
+double offy = 0;
+double offz = 0;
 double focal_length_x_ = 525.;
 double focal_length_y_ = 525.;
 double principal_point_x_ = 319.5;
@@ -100,12 +105,18 @@ int main(int argc, char** argv) {
         nh.param<double>("trunc_dist_neg", trunc_dist_neg, 0.03);
         nh.param<double>("max_sensor_dist", max_sensor_dist, 3.0);
         nh.param<double>("min_sensor_dist", min_sensor_dist, 0.0);
+        nh.param<double>("min_weight", min_weight, 0.0);
+        nh.param<int>("crop_width", crop_width, width_);
+        nh.param<int>("crop_height", crop_height, height_);
 
         nh.param<double>("fx", focal_length_x_, 525.);
         nh.param<double>("fy", focal_length_y_, 525.);
         nh.param<double>("cx", principal_point_x_, 319.5);
         nh.param<double>("cy", principal_point_y_, 239.5);
 
+        nh.param<double>("offx", offx, 0.0);
+        nh.param<double>("offy", offy, 0.0);
+        nh.param<double>("offz", offz, 0.0);
         nh.param<double>("leaf", leaf, 0.01);
         nh.param<int>("frame_jumps", frame_jumps, 1);
         int total_perc_n = 100/frame_jumps;
@@ -137,6 +148,7 @@ int main(int argc, char** argv) {
                 ROS_INFO("Setting resolution: %f with grid size %f and voxel size %f\n", tsdf_res, tsdf_size,cell_size);
                 tsdf->setResolution (tsdf_res, tsdf_res, tsdf_res);
                 tsdf->setImageSize (width_, height_);
+                tsdf->setImageCropSize(crop_width,crop_height);
                 tsdf->setCameraIntrinsics (focal_length_x_, focal_length_y_, principal_point_x_, principal_point_y_);
                 tsdf->setNumRandomSplts (num_random_splits);
                 tsdf->setSensorDistanceBounds (min_sensor_dist, max_sensor_dist);
@@ -160,6 +172,7 @@ int main(int argc, char** argv) {
                         std::string cloud_filename = path + boost::lexical_cast<std::string>(i) +cloud_suffix+ ".pcd";
 
                         pcl::PointCloud<PointType>::Ptr cloud(new pcl::PointCloud<PointType>());
+                        pcl::PointCloud<PointType>::Ptr cloud_reduced(new pcl::PointCloud<PointType>());
                         pcl::PointCloud<PointType>::Ptr cloud_trans(new pcl::PointCloud<PointType>());
                         Eigen::Matrix4d pose = lar_tools::load_transform_4x4_d(pose_filename);
                         Eigen::Matrix4d pose_robot= lar_tools::load_transform_4x4_d(pose_robot_filename);;
@@ -172,6 +185,7 @@ int main(int argc, char** argv) {
                                 pose = pose_robot * pose_ee;
                         }
 
+
                         if(i==0) {
                                 pose_0 = pose;
                         }
@@ -183,6 +197,7 @@ int main(int argc, char** argv) {
                                 break;
                         }
 
+                        //MORE NOISE
                         if(more_noise) {
                                 Noiser noiser;
                                 noiser.axial_coefficient=0.1;
@@ -195,7 +210,7 @@ int main(int argc, char** argv) {
                         cloud->width = width_;
                         cloud->height = height_;
 
-                        if (cloud->height != height_ || cloud->width != width_)
+                        if (cloud->width != width_ || cloud->height != height_)
                         {
                                 PCL_ERROR ("Error: cloud %d has size %d x %d, but TSDF is initialized for %d x %d pointclouds\n", i+1, cloud->width, cloud->height, width_, height_);
                                 return (1);

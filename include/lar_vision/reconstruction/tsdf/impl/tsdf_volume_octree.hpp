@@ -51,14 +51,19 @@ lar_vision::TSDFVolumeOctree::integrateCloud (
   const pcl::PointCloud<NormalT> &normals,
   const Eigen::Affine3d &trans)
 {
+
   Eigen::Affine3f trans_inv = trans.inverse ().cast<float> ();
 
   // First, sample a few points and force their containing voxels to split
   int px_step = 1;
   int nsplit = 0;
-  for (size_t u = 0; u < cloud.width; u += px_step)
+
+  int start_u = (image_width_ - image_crop_width_)/2.0;
+  int start_v = (image_height_ - image_crop_height_)/2.0;
+
+  for (size_t u = start_u; u < start_u + image_crop_width_; u += px_step)
   {
-    for (size_t v = 0; v < cloud.height; v += px_step)
+    for (size_t v = start_v; v < start_v + image_crop_height_; v += px_step)
     {
       const PointT &pt_surface_orig = cloud (u, v);
       if (pcl_isnan (pt_surface_orig.z))
@@ -88,6 +93,7 @@ lar_vision::TSDFVolumeOctree::integrateCloud (
       }
     }
   }
+
 
   // Do Frustum Culling to get rid of unseen voxels
   std::vector<lar_vision::OctreeNode::Ptr> voxels_culled;
@@ -148,6 +154,11 @@ lar_vision::TSDFVolumeOctree::updateVoxel (
   int u, v;
   if (!reprojectPoint (v_g, u, v))
     return (0); // No observation
+
+  //Crop control
+  if(u<(image_width_ - image_crop_width_)/2.0 || u > (image_width_ + image_crop_width_)/2.0)return(0);
+  if(v<(image_height_ - image_crop_height_)/2.0 || u > (image_height_ + image_crop_height_)/2.0)return(0);
+
   const PointT &pt = cloud (u,v);
   if (pcl_isnan (pt.z))
     return (0); // No observation

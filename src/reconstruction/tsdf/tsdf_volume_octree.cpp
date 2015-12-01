@@ -69,6 +69,8 @@ lar_vision::TSDFVolumeOctree::TSDFVolumeOctree()
         , principal_point_y_ (240)
         , image_width_ (640)
         , image_height_ (480)
+        , image_crop_width_(640)
+        , image_crop_height_(480)
         , max_cell_size_x_ (0.5f)
         , max_cell_size_y_ (0.5f)
         , max_cell_size_z_ (0.5f)
@@ -130,6 +132,14 @@ lar_vision::TSDFVolumeOctree::setImageSize (int width, int height)
 {
         image_width_ = width;
         image_height_ = height;
+}
+
+////////////////////////////////////////////////////////////////
+void
+lar_vision::TSDFVolumeOctree::setImageCropSize (int c_width, int c_height)
+{
+        image_crop_width_ = c_width;
+        image_crop_height_ = c_height;
 }
 
 /////////////////////////////////////////////////////////////////

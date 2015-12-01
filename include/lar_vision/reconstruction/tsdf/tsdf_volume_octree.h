@@ -96,6 +96,14 @@ namespace lar_vision
     void
     setImageSize (int width, int height);
 
+    /** \brief Set the size of the centered Crop
+     *  \param[in] c_width
+     *  \param[in] c_height
+     */
+    void
+    setImageCropSize (int c_width, int c_height);
+
+
     /** \brief Get the size of the image
      *  \param[out] width
      *  \param[out] height
@@ -359,7 +367,10 @@ namespace lar_vision
 
     double focal_length_x_, focal_length_y_;
     double principal_point_x_, principal_point_y_;
+
     int image_width_, image_height_;
+
+    int image_crop_width_, image_crop_height_;
 
     bool is_empty_;
 
