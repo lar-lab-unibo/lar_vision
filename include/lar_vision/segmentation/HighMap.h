@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 
-/* 
+/*
  * File:   HighMap.h
  * Author: daniele
  *
@@ -43,6 +43,7 @@ namespace lar_vision {
                 int map_min_inliers
                 );
 
+        double highest_plane_z;
     private:
         double* map;
         double size;
@@ -54,4 +55,3 @@ namespace lar_vision {
 }
 
 #endif /* HIGHMAP_H */
-

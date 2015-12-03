@@ -99,6 +99,11 @@ namespace lar_vision {
     /**
      */
     void
+    draw_reference_frame(pcl::visualization::PCLVisualizer &viewer, Eigen::Matrix4d& rf, float size, std::string name);
+
+    /**
+     */
+    void
     compute_centroid_local_rf(pcl::PointCloud<PointType>::Ptr& cloud, pcl::ReferenceFrame& rf, int type = -1);
 
     /**
