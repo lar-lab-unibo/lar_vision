@@ -174,11 +174,6 @@ bool CrabbyGripper::getApproachRF(std::vector<GrasperPoint>& points,std::vector<
         pitch = 0;
         yaw =  atan2(L[1],L[0]);
 
-        std::cout << "P1: "<<configuration_points[0].p<<std::endl;
-        std::cout << "P2: "<<configuration_points[1].p<<std::endl;
-        std::cout << "P3: "<<configuration_points[2].p<<std::endl;
-        std::cout << "XY: "<<x<<" , "<<y<<std::endl;
-
         return true;
 }
 

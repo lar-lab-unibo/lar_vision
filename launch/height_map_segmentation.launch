@@ -1,0 +1,21 @@
+<launch>
+
+  <node name="height_map_segmentation_rf" output="screen" pkg="lar_vision" type="lar_vision_height_map_segmentation_rf">
+
+    <param name="cloud" value="/home/daniele/temp/live_tsdf_simple.pcd"/>
+    <param name="transform_path" value=""/>
+    <param name="slice_size" value="0.05"/>
+    <param name="object_slice_size" value="0.01"/>
+    <param name="angle_th" value="40"/>
+    <param name="offset" value="1.0"/>
+    <param name="min_inliers" value="100"/>
+    <param name="filter_leaf" value="0.0001"/>
+    <param name="doslice" value="true"/>
+    <param name="dograsp" value="true"/>
+    <param name="grasp_alpha" value="0.1"/>
+    <param name="grasp_delta" value="0.01"/>
+    <param name="grasp_max_curvature" value="1.0"/>
+
+  </node>
+
+</launch>

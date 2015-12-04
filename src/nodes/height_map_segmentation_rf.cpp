@@ -62,8 +62,8 @@ main(int argc, char** argv) {
         double filter_leaf;
         bool slice = false;
         bool grasp = false;
-        bool grasp_alpha;
-        bool grasp_delta;
+        double grasp_alpha,grasp_delta;
+        double grasp_max_curvature;
 
         double angle_th = 10.0f;
         int min_inliers = 50;
@@ -79,8 +79,10 @@ main(int argc, char** argv) {
         nh.param<double>("filter_leaf", filter_leaf, 0.0051);
         nh.param<bool>("doslice", slice, false);
         nh.param<bool>("dograsp", grasp, false);
-        nh.param<bool>("grasp_alpha", grasp_alpha, 0.1f);
-        nh.param<bool>("grasp_delta", grasp_delta, 0.005f);
+        nh.param<double>("grasp_alpha", grasp_alpha, 0.1f);
+        nh.param<double>("grasp_delta", grasp_delta, 0.005f);
+        nh.param<double>("grasp_max_curvature", grasp_max_curvature, 1.0);
+
 
 
         ROS_INFO("Cloud Path:  %s", cloud_path.c_str());
@@ -187,7 +189,8 @@ main(int argc, char** argv) {
                                 //                display_cloud(*viewer, slice_oriented, color[0], color[1], color[2], 2, name + "sor");
 
                                 if (grasp && slice_indices.size()>3) {
-                                        if (j == 3) {
+                                        if (j == slice_indices.size()/2) {
+                                                ROS_INFO("Grasping point search: %f, %f",grasp_alpha, grasp_delta);
                                                 Grasper grasper(grasp_alpha, grasp_delta);
                                                 grasper.setCloud(slice_oriented);
                                                 display_cloud(*viewer, grasper.hull, 255, 255, 255, 10, name + "_hull");
@@ -195,14 +198,16 @@ main(int argc, char** argv) {
                                                 CrabbyGripper gripper;
                                                 gripper.auto_discard_planar_invalids = true;
                                                 gripper.fritction_cone_angle = M_PI/2.0;
-
+                                                gripper.max_curvature = grasp_max_curvature;
+                                                
                                                 std::vector<int> grasp_indices;
                                                 int jumps = 0;
                                                 bool found = false;
 
                                                 while(!found) {
                                                         gripper.find(grasper.points, grasp_indices,jumps);
-                                                        found = true;
+                                                        if(grasp_indices.size()==0)break;
+
                                                         double x,y,z,roll,pitch,yaw;
                                                         gripper.getApproachRF(grasper.points, grasp_indices,x,y,z,roll,pitch,yaw);
                                                         z = slice->points[0].z;
@@ -213,6 +218,24 @@ main(int argc, char** argv) {
                                                         lar_tools::rotation_matrix_4x4_d('z',M_PI/2.0,rotz);
                                                         grasp_rf = grasp_rf*roty;
                                                         grasp_rf = grasp_rf*rotz;
+
+                                                        Eigen::Vector3f base_x;
+                                                        base_x<< 1,0,0;
+                                                        Eigen::Vector3f approach_dir;
+                                                        approach_dir<<
+                                                        -grasp_rf(0,2),
+                                                        -grasp_rf(1,2),
+                                                        -grasp_rf(2,2);
+
+                                                        double approach_angle_offset = acos(approach_dir.dot(base_x));
+
+                                                          std::cout << "Approach Angle: "<<approach_angle_offset*180.0/M_PI<<std::endl;
+                                                        if(fabs(approach_angle_offset)>M_PI/2.0){
+                                                              jumps++;
+                                                              continue;
+                                                        }else{
+                                                          found = true;
+                                                        }
 
                                                         if (grasp_indices.size() > 0) {
                                                                 pcl::PointCloud<PointType>::Ptr grasp_configuration_cloud(new pcl::PointCloud<PointType>());
