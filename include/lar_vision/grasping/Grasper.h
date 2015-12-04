@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 
-/* 
+/*
  * File:   Grasper.h
  * Author: daniele
  *
@@ -18,6 +18,8 @@
 #include <pcl/common/io.h>
 #include <pcl/surface/concave_hull.h>
 
+#define LAR_VISION_GRASPER_POINT_TYPE_CONTACT_POINT 100
+#define LAR_VISION_GRASPER_POINT_TYPE_CONTROL_POINT 105
 
 namespace lar_vision {
 
@@ -30,6 +32,7 @@ namespace lar_vision {
         double curvature;
         GrasperPoint* next;
         GrasperPoint* back;
+        int point_type;
         bool vertex;
 
         GrasperPoint(double x, double y) {
@@ -37,6 +40,7 @@ namespace lar_vision {
             this->vertex = false;
             this->next = NULL;
             this->back = NULL;
+            this->point_type = LAR_VISION_GRASPER_POINT_TYPE_CONTACT_POINT;
         }
 
         GrasperPoint(const Eigen::Vector2f& p) {
@@ -44,6 +48,7 @@ namespace lar_vision {
             this->vertex = false;
             this->next = NULL;
             this->back = NULL;
+            this->point_type = LAR_VISION_GRASPER_POINT_TYPE_CONTACT_POINT;
         }
     };
 
@@ -98,9 +103,6 @@ namespace lar_vision {
         Grasper(double concave_alpha = 0.1f, double discretization_step = 0.01f);
         virtual ~Grasper();
         void setCloud(pcl::PointCloud<PointType>::Ptr& cloud);
-        bool isValidPlanarConfiguration(std::vector<int>& indices);
-        bool isValidPlanarConfiguration(std::vector<GrasperPoint>& points);
-        bool isVectorPositiveCombinationOf(Eigen::Vector2f& vector, std::vector<GrasperPoint>& points);
 
         std::vector<GrasperLine> lines;
         std::vector<GrasperPoint> points;
@@ -117,11 +119,10 @@ namespace lar_vision {
         double discretization_step;
 
         pcl::PointCloud<PointType>::Ptr cloud;
-        
+
 
         int gripper_status;
 
     };
 }
 #endif /* GRASPER_H */
-

@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 
-/* 
+/*
  * File:   GraspingGripper.h
  * Author: daniele
  *
@@ -31,6 +31,11 @@ namespace lar_vision {
         virtual ~GraspingGripper();
         void find(std::vector<GrasperPoint>& points, std::vector<int>& indices, int jump = 0);
         void findParallel(std::vector<GrasperPoint>& points, std::vector<int>& indices, int jump = 0);
+        bool isValidPlanarConfiguration(std::vector<GrasperPoint>& points,std::vector<int>& indices);
+        bool isValidPlanarConfiguration(std::vector<GrasperPoint>& points);
+        bool isVectorPositiveCombinationOf(Eigen::Vector2f& vector, std::vector<GrasperPoint>& points);
+
+
         double offset;
         double min_radius;
         double max_radius;
@@ -40,9 +45,8 @@ namespace lar_vision {
         bool discard_vertices;
         int type;
     private:
-        
-        
+
+
     };
 }
 #endif /* GRASPINGGRIPPER_H */
-

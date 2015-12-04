@@ -88,6 +88,7 @@ add_library(lar_vision
         src/grasping/Slicer.cpp
         src/grasping/Grasper.cpp
         src/grasping/grippers/GraspingGripper.cpp
+        src/grasping/grippers/CrabbyGripper.cpp
         src/reconstruction/tsdf/marching_cubes_tsdf_octree.cpp
         src/reconstruction/tsdf/octree.cpp
         src/reconstruction/tsdf/tsdf_interface.cpp

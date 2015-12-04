@@ -4,10 +4,10 @@
  * and open the template in the editor.
  */
 
-/* 
+/*
  * File:   GraspingGripper.cpp
  * Author: daniele
- * 
+ *
  * Created on November 10, 2015, 7:16 PM
  */
 
@@ -45,11 +45,11 @@ namespace lar_vision {
         for (int i = 0; i < points.size(); i++) {
             if(points[i].curvature > this->max_curvature)continue;
             target = points[i].p;
-            
+
             for (int j = 0; j < points.size(); j++) {
                 if (i != j) {
                     if(points[j].curvature > this->max_curvature)continue;
-                    
+
                     pointer = points[j].p;
                     offset_distance = (target - pointer).norm();
 
@@ -61,7 +61,7 @@ namespace lar_vision {
                         for (int k = 0; k < points.size(); k++) {
                             if (k != j && k != i) {
                                 if(points[k].curvature > this->max_curvature)continue;
-                                
+
                                 Eigen::Vector2f third = points[k].p;
                                 Eigen::Vector2f dir = (third - middle)*(1.0f / (third - middle).norm());
 
@@ -86,5 +86,36 @@ namespace lar_vision {
                 }
             }
         }
+    }
+
+    bool GraspingGripper::isValidPlanarConfiguration(std::vector<GrasperPoint>& points,std::vector<int>& indices) {
+        std::vector<GrasperPoint> filtered_points;
+
+        for (int i = 0; i < indices.size(); i++) {
+            filtered_points.push_back(points[indices[i]]);
+        }
+        return isValidPlanarConfiguration(points);
+    }
+
+    bool GraspingGripper::isValidPlanarConfiguration(std::vector<GrasperPoint>& points) {
+      
+        Eigen::Vector2f north;
+        north << 0, -1;
+        Eigen::Matrix2f rot;
+        bool valid = true;
+        for (float angle = 0; angle < 2 * M_PI; angle += M_PI / 4.0f) {
+            rot << cos(angle), -sin(angle), sin(angle), cos(angle);
+            north = rot*north;
+            valid = valid && isVectorPositiveCombinationOf(north, points);
+        }
+        return valid;
+    }
+
+    bool GraspingGripper::isVectorPositiveCombinationOf(Eigen::Vector2f& vector, std::vector<GrasperPoint>& points) {
+
+        for (int i = 0; i < points.size(); i++) {
+            if (vector.dot(points[i].normal) > 0)return true;
+        }
+        return false;
     }
 }

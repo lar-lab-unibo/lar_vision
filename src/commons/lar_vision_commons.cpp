@@ -30,7 +30,7 @@ display_cloud(pcl::visualization::PCLVisualizer &viewer, pcl::PointCloud<PointTy
 
 void
 compute_normals(pcl::PointCloud<PointType>::Ptr& cloud, pcl::PointCloud<NormalType>::Ptr& cloud_normals, float radius_search) {
-        if(cloud->height>0) {
+        if(cloud->height>1) {
                 pcl::IntegralImageNormalEstimation<PointType, NormalType> ne;
                 ne.setNormalEstimationMethod(ne.AVERAGE_3D_GRADIENT);
                 ne.setMaxDepthChangeFactor(0.02f);

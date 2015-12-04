@@ -4,10 +4,10 @@
  * and open the template in the editor.
  */
 
-/* 
+/*
  * File:   Grasper.cpp
  * Author: daniele
- * 
+ *
  * Created on November 10, 2015, 7:05 PM
  */
 
@@ -123,35 +123,7 @@ namespace lar_vision {
         }
     }
 
-    bool Grasper::isValidPlanarConfiguration(std::vector<int>& indices) {
-        std::vector<GrasperPoint> points;
-
-        for (int i = 0; i < indices.size(); i++) {
-            points.push_back(this->points[indices[i]]);
-        }
-        return isValidPlanarConfiguration(points);
-    }
-
-    bool Grasper::isValidPlanarConfiguration(std::vector<GrasperPoint>& points) {
-        Eigen::Vector2f north;
-        north << 0, -1;
-        Eigen::Matrix2f rot;
-        bool valid = true;
-        for (float angle = 0; angle < 2 * M_PI; angle += M_PI / 4.0f) {
-            rot << cos(angle), -sin(angle), sin(angle), cos(angle);
-            north = rot*north;
-            valid = valid && isVectorPositiveCombinationOf(north, points);
-        }
-        return valid;
-    }
-
-    bool Grasper::isVectorPositiveCombinationOf(Eigen::Vector2f& vector, std::vector<GrasperPoint>& points) {
-
-        for (int i = 0; i < points.size(); i++) {
-            if (vector.dot(points[i].normal) > 0)return true;
-        }
-        return false;
-    }
+    
 
 
 

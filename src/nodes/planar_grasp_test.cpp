@@ -18,7 +18,7 @@
 #include "segmentation/HighMap.h"
 #include "grasping/Slicer.h"
 #include "grasping/Grasper.h"
-#include "grasping/grippers/GraspingGripper.h"
+#include "grasping/grippers/CrabbyGripper.h"
 
 #define GRIPPER_STATUS_PARALLEL 0
 #define GRIPPER_STATUS_TRIPOD 1
@@ -38,6 +38,7 @@ double scale = 4000.0f;
 double alpha = 0.006f;
 double delta = 0.01f;
 double eps = 0.005f;
+bool discard_invalids = false;
 int bypass = 0;
 pcl::PointCloud<PointType>::Ptr cloud(new pcl::PointCloud<PointType>);
 pcl::PointCloud<PointType>::Ptr hull(new pcl::PointCloud<PointType>);
@@ -93,11 +94,13 @@ void update() {
     cv::circle(img, cv::Point2f(grasper.centroid(0) * scale, grasper.centroid(1) * scale), 10.0f, cv::Scalar(0, 0, 255), 3);
 
 
-    GraspingGripper gripper;
+    CrabbyGripper gripper;
 
+    gripper.auto_discard_planar_invalids = discard_invalids;
+    
     std::vector<int> grasp_indices;
     gripper.find(grasper.points, grasp_indices, bypass);
-    bool valid = grasper.isValidPlanarConfiguration(grasp_indices);
+    bool valid = gripper.isValidPlanarConfiguration(grasper.points,grasp_indices);
 
     for (int i = 0; i < grasp_indices.size(); i++) {
         cv::Point2f point(grasper.points[grasp_indices[i]].p(0) * scale, grasper.points[grasp_indices[i]].p(1) * scale);
@@ -141,6 +144,7 @@ int main(int argc, char** argv) {
     nh.param<double>("alpha", alpha, 0.1f);
     nh.param<double>("delta", delta, 0.01f);
     nh.param<double>("eps", eps, 0.005f);
+    nh.param<bool>("discard_invalids", discard_invalids, false);
 
 
 
