@@ -63,7 +63,7 @@ void CrabbyGripper::find(std::vector<GrasperPoint>& points, std::vector<int>& in
                                                         Eigen::Vector2f third = points[k].p;
                                                         Eigen::Vector2f dir = (third - middle)*(1.0f / (third - middle).norm());
 
-                                                        offset_orientation = acos(dir.dot(len));
+                                                        offset_orientation = fabs(acos(dir.dot(len)));
                                                         //                                    std::cout << "orientation: "<<offset_orientation<<std::endl;
                                                         if (offset_orientation >= (M_PI / 2.0f) - this->ortogonal_range && offset_orientation <= (M_PI / 2.0f) + this->ortogonal_range) {
                                                                 offset_distance = (third - middle).norm() - this->epsilon * 2;
@@ -116,7 +116,7 @@ bool CrabbyGripper::isValidPlanarConfiguration(std::vector<GrasperPoint>& points
 
 bool CrabbyGripper::isValidPlanarConfiguration(std::vector<GrasperPoint>& points) {
 
-        if(points.size() >= 2) {
+        if(points.size() >= 3) {
                 Eigen::Vector2f p1 = points[0].p;
                 Eigen::Vector2f p2 = points[1].p;
                 Eigen::Vector2f n1 = points[0].normal;
@@ -129,7 +129,16 @@ bool CrabbyGripper::isValidPlanarConfiguration(std::vector<GrasperPoint>& points
                 double angle_limit = (M_PI*2.0-fritction_cone_angle)/2.0;
 
                 if(a1>angle_limit && a2>angle_limit) {
-                        return true;
+
+                        Eigen::Vector2f p3 = points[2].p;
+                        Eigen::Vector2f n3 = points[2].normal;
+                        double a31 = acos(n3.dot(n1));
+                        double a32 = acos(n3.dot(n2));
+                        a31 = fabs(M_PI/2.0 -fabs(a31));
+                        a32 = fabs(M_PI/2.0 -fabs(a32));
+                        if(a31<=this->ortogonal_range && a32<=this->ortogonal_range) {
+                                return true;
+                        }
                 }
         }
         return false;

@@ -101,7 +101,7 @@ namespace lar_vision {
             GrasperPoint current = points[i];
             GrasperPoint* next = current.next;
             GrasperPoint* back = current.back;
-            depth = 2;
+            depth = 1;
             while (next != NULL && back != NULL && depth >= 0) {
                 back = back->back;
                 next = next->next;
@@ -115,15 +115,18 @@ namespace lar_vision {
 
             GrasperLine g1(current, *next, 1);
             GrasperLine g2(*back, current, 1);
-            Eigen::Vector2f normal = 0.5f * (g1.ortogonal() + g2.ortogonal());
+            Eigen::Vector2f n1 = g1.ortogonal();
+            Eigen::Vector2f n2 = g2.ortogonal();
+            if((-n2).dot(n1) > n2.dot(n1))n2=-n2;
+            Eigen::Vector2f normal = 0.5f * (n1+n2);
             dir = (current.p - centroid)*(1.0f / (current.p - centroid).norm());
             if (normal.dot(dir) < 0)normal = -normal;
             points[i].normal = normal;
-            points[i].curvature = acos(g2.ortogonal().dot(g1.ortogonal()));
+            points[i].curvature = fabs(acos(n1.dot(n2)));
         }
     }
 
-    
+
 
 
 
