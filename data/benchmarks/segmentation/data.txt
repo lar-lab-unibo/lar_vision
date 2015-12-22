@@ -1,0 +1,56 @@
+Type: ransac size: 261035 time: 41
+Type: ransac size: 522070 time: 87
+Type: ransac size: 1044140 time: 171
+Type: ransac size: 2088280 time: 324
+Type: ransac size: 4176560 time: 646
+Type: ransac size: 8353120 time: 1292
+Type: ransac size: 16706240 time: 2676
+Type: ransac size: 33412480 time: 5417
+Type: ransac size: 66824960 time: 12001
+Type: ransac size: 133649920 time: 27451
+
+
+
+Type: onepoint size: 261035 time: 20
+Type: onepoint size: 522070 time: 41
+Type: onepoint size: 1044140 time: 82
+Type: onepoint size: 2088280 time: 165
+Type: onepoint size: 4176560 time: 349
+Type: onepoint size: 8353120 time: 681
+Type: onepoint size: 16706240 time: 1434
+Type: onepoint size: 33412480 time: 2637
+Type: onepoint size: 66824960 time: 5851
+
+
+1x
+Type: heightmap size: 261035 time: 19
+Type: heightmap size: 522070 time: 35
+Type: heightmap size: 1044140 time: 70
+Type: heightmap size: 2088280 time: 140
+Type: heightmap size: 4176560 time: 270
+Type: heightmap size: 8353120 time: 547
+Type: heightmap size: 16706240 time: 1109
+Type: heightmap size: 33412480 time: 2202
+Type: heightmap size: 66824960 time: 4491
+
+5x
+Type: heightmap size: 261035 time: 9
+Type: heightmap size: 522070 time: 18
+Type: heightmap size: 1044140 time: 54
+Type: heightmap size: 2088280 time: 91
+Type: heightmap size: 4176560 time: 175
+Type: heightmap size: 8353120 time: 343
+Type: heightmap size: 16706240 time: 657
+Type: heightmap size: 33412480 time: 1319
+Type: heightmap size: 66824960 time: 2627
+
+15x
+Type: heightmap size: 261035 time: 8
+Type: heightmap size: 522070 time: 16
+Type: heightmap size: 1044140 time: 37
+Type: heightmap size: 2088280 time: 74
+Type: heightmap size: 4176560 time: 138
+Type: heightmap size: 8353120 time: 300
+Type: heightmap size: 16706240 time: 570
+Type: heightmap size: 33412480 time: 1148
+Type: heightmap size: 66824960 time: 2265

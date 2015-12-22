@@ -9,7 +9,7 @@
 #include <pcl/io/pcd_io.h>
 #include <pcl/common/io.h>
 #include <pcl/surface/concave_hull.h>
-#include <pcl-1.8/pcl/impl/point_types.hpp>
+#include <pcl/impl/point_types.hpp>
 #include <bits/stl_vector.h>
 
 
@@ -110,7 +110,7 @@ void update() {
     gripper.max_radius = grasp_max_radius;
     gripper.fritction_cone_angle = grasp_fritction_cone_angle;
     gripper.max_curvature = grasp_max_curvature;
-    
+
     std::vector<int> grasp_indices;
     gripper.find(grasper.points, grasp_indices, bypass);
     bool valid = gripper.isValidPlanarConfiguration(grasper.points,grasp_indices);

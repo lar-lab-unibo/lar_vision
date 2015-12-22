@@ -92,17 +92,24 @@ void HighMap::planesCheck(
                 }
         }
 
+        float max_angle_rad = max_angle * M_PI / 180.0f;
         for (int i = 0; i < cloud->points.size(); i++) {
                 PointType p = cloud->points[i];
+                NormalType n = cloud_normals->points[i];
+                normal(0) = n.normal_x;
+                normal(1) = n.normal_y;
+                normal(2) = n.normal_z;
 
+                float angle = acos(normal.dot(gravity_neg));
 
-                if (this->pointValue(p.z) >= map_min_inliers) {
+                if (this->pointValue(p.z) >= map_min_inliers && angle <= max_angle_rad) {
+
                         planes_indices.push_back(i);
                         this->highest_plane_z = p.z>this->highest_plane_z ? p.z : this->highest_plane_z;
                 } //            else if (this->pointValue(p.z - step / 2.0f) >= map_min_inliers) {
                   //                planes_indices.push_back(i);
                   //            }
-                else if (this->pointValue(p.z + step / 2.0f) >= map_min_inliers) {
+                else if (this->pointValue(p.z + step / 2.0f) >= map_min_inliers  && angle <= max_angle_rad) {
                         planes_indices.push_back(i);
                 } else {
                         filtered_indices.push_back(i);

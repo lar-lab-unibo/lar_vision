@@ -11,7 +11,7 @@
 #include <pcl/io/pcd_io.h>
 #include <pcl/visualization/pcl_visualizer.h>
 #include <pcl/filters/voxel_grid.h>
-#include <pcl-1.8/pcl/common/transforms.h>
+#include <pcl/common/transforms.h>
 
 #include "lar_tools.h"
 #include "lar_vision_commons.h"
@@ -44,10 +44,11 @@ void load_transform(std::string path, Eigen::Matrix4f& t) {
 /** MAIN NODE **/
 int
 main(int argc, char** argv) {
-
+        
         // Initialize ROS
         lar_tools::init_ros_node(argc, argv, "tesing_node");
         ros::NodeHandle nh("~");
+
 
         //PCL
         pcl::visualization::PCLVisualizer* viewer = new pcl::visualization::PCLVisualizer("viewer");
@@ -199,7 +200,7 @@ main(int argc, char** argv) {
                                                 gripper.auto_discard_planar_invalids = true;
                                                 gripper.fritction_cone_angle = M_PI/2.0;
                                                 gripper.max_curvature = grasp_max_curvature;
-                                                
+
                                                 std::vector<int> grasp_indices;
                                                 int jumps = 0;
                                                 bool found = false;
