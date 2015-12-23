@@ -57,8 +57,6 @@ main(int argc, char** argv) {
         lar_tools::init_ros_node(argc, argv, "segmentation_test");
         ros::NodeHandle nh("~");
 
-        //PCL
-        pcl::visualization::PCLVisualizer* viewer = new pcl::visualization::PCLVisualizer("viewer");
 
 
         std::string cloud_path;
@@ -76,6 +74,8 @@ main(int argc, char** argv) {
         double angle_th = 10.0f;
         int min_inliers = 50;
         int test_iterations = 5;
+        int bg_color = 255;
+        int cluster_color = 125;
 
         std::string segmentation_type;
 
@@ -85,6 +85,8 @@ main(int argc, char** argv) {
         nh.param<double>("object_slice_size", object_slice_size, 0.01);
         nh.param<double>("angle_th", angle_th, 20.0);
         nh.param<int>("min_inliers", min_inliers, 50);
+        nh.param<int>("bg_color", bg_color, 255);
+        nh.param<int>("cluster_color", cluster_color, 125);
         nh.param<int>("test_iterations", test_iterations, 5);
         nh.param<double>("offset", offset, 0.0);
         nh.param<double>("reduction", reduction, 1.01);
@@ -96,6 +98,11 @@ main(int argc, char** argv) {
         nh.param<double>("grasp_max_curvature", grasp_max_curvature, 1.0);
         nh.param<std::string>("segmentation_type", segmentation_type, "heightmap");
 
+
+
+        //PCL
+        pcl::visualization::PCLVisualizer* viewer = new pcl::visualization::PCLVisualizer("viewer");
+        viewer->setBackgroundColor (bg_color, bg_color, bg_color);
 
 
         ROS_INFO("Cloud Path:  %s", cloud_path.c_str());
@@ -158,7 +165,7 @@ main(int argc, char** argv) {
 
 
                 }else if(segmentation_type=="onepoint") {
-                        OnePointRansac one(0.01,0.99,1000,std::cos(angle_th*M_PI/180.0));
+                        OnePointRansac one(slice_size,0.99,1000,std::cos(angle_th*M_PI/180.0));
 
                         time_start =microsec_clock::local_time();
 
@@ -214,8 +221,24 @@ main(int argc, char** argv) {
                 pcl::copyPointCloud(*cloud_filtered, filtered_indices, *clusters);
                 pcl::copyPointCloud(*cloud_filtered, planes_indices, *planes);
 
-                display_cloud(*viewer, clusters, 255,255,255, 1, "clusters");
-                display_cloud(*viewer, planes, 255,0,0, 1, "planes");
+                display_cloud(*viewer, clusters, cluster_color,cluster_color,cluster_color, 1, "clusters");
+
+                Palette palette;
+                if(segmentation_type=="heightmap")  {
+                        std::vector<pcl::PointIndices> clusterplanes_indices;
+                        clusterize(planes, clusterplanes_indices);
+
+                        for (int i = 0; i < clusterplanes_indices.size(); i++) {
+                                pcl::PointCloud<PointType>::Ptr planecluster(new pcl::PointCloud<PointType>());
+                                pcl::copyPointCloud(*planes, clusterplanes_indices[i].indices, *planecluster);
+                                Eigen::Vector3i color = palette.getColor();
+                                std::string name = "plane_"+ boost::lexical_cast<std::string>(i);
+                                display_cloud(*viewer, planecluster, color[0], color[1], color[2], 1, name);
+                        }
+                }else{
+                    Eigen::Vector3i color = palette.getColor();
+                    display_cloud(*viewer, planes, color[0], color[1], color[2], 1, "planes");
+                }
         }
 
         while (nh.ok() && !viewer->wasStopped()) {

@@ -11,8 +11,10 @@
     <param name="angle_th" value="45"/>
     <param name="offset" value="1.0"/>
     <param name="min_inliers" value="100"/>
+    <param name="bg_color" value="255"/>
+    <param name="cluster_color" value="120"/>
     <param name="filter_leaf" value="0.001"/>
-    <param name="segmentation_type" value="onepoint"/>
+    <param name="segmentation_type" value="heightmap"/>
 
   </node>
 
