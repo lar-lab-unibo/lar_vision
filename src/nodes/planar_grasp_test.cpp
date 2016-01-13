@@ -9,7 +9,7 @@
 #include <pcl/io/pcd_io.h>
 #include <pcl/common/io.h>
 #include <pcl/surface/concave_hull.h>
-#include <pcl-1.8/pcl/impl/point_types.hpp>
+#include <pcl/impl/point_types.hpp>
 #include <bits/stl_vector.h>
 
 
@@ -39,6 +39,13 @@ double alpha = 0.006f;
 double delta = 0.01f;
 double eps = 0.005f;
 bool discard_invalids = false;
+double grasp_min_offset = 0.01;
+double grasp_max_offset = 0.2;
+double grasp_min_radius = 0.01;
+double grasp_max_radius = 0.05;
+double grasp_fritction_cone_angle = 1.57;
+double grasp_max_curvature = 1.57;
+
 int bypass = 0;
 pcl::PointCloud<PointType>::Ptr cloud(new pcl::PointCloud<PointType>);
 pcl::PointCloud<PointType>::Ptr hull(new pcl::PointCloud<PointType>);
@@ -97,7 +104,13 @@ void update() {
     CrabbyGripper gripper;
 
     gripper.auto_discard_planar_invalids = discard_invalids;
-    
+    gripper.min_offset = grasp_min_offset;
+    gripper.max_offset = grasp_max_offset;
+    gripper.min_radius = grasp_min_radius;
+    gripper.max_radius = grasp_max_radius;
+    gripper.fritction_cone_angle = grasp_fritction_cone_angle;
+    gripper.max_curvature = grasp_max_curvature;
+
     std::vector<int> grasp_indices;
     gripper.find(grasper.points, grasp_indices, bypass);
     bool valid = gripper.isValidPlanarConfiguration(grasper.points,grasp_indices);
@@ -145,6 +158,13 @@ int main(int argc, char** argv) {
     nh.param<double>("delta", delta, 0.01f);
     nh.param<double>("eps", eps, 0.005f);
     nh.param<bool>("discard_invalids", discard_invalids, false);
+
+    nh.param<double>("grasp_min_offset",grasp_min_offset,0.01);
+    nh.param<double>("grasp_max_offset",grasp_max_offset,0.2);
+    nh.param<double>("grasp_min_radius",grasp_min_radius,0.01);
+    nh.param<double>("grasp_max_radius",grasp_max_radius,0.05);
+    nh.param<double>("grasp_fritction_cone_angle",grasp_fritction_cone_angle,M_PI/2.0);
+    nh.param<double>("grasp_max_curvature",grasp_max_curvature,1);
 
 
 

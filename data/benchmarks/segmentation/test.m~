@@ -1,0 +1,36 @@
+points=[
+    261035
+    522070
+    1044140
+    2088280
+    4176560
+    8353120
+    16706240
+    33412480
+    66824960
+    133649920
+]
+
+ransac=[
+    261035,41
+    522070,87
+    1044140,171
+    2088280,324
+    4176560,646
+    8353120,1292
+    16706240,2676
+    33412480,5417
+    66824960,12001
+    133649920,27451
+]
+
+
+plot(points,ransac,'r', 'LineWidth',2);hold on;
+%plot(r_reference,r_vader*1.2,'g', 'LineWidth',2);hold on;
+%plot(r_reference,r_toycar,'b', 'LineWidth',2);hold on;
+legend('DUCK','VADER','TOYCAR')
+hold on;
+xlabel('% of total frames (~150 frames)');
+ylabel('MSE');
+grid on;
+    

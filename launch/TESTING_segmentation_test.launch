@@ -1,0 +1,21 @@
+<launch>
+
+  <node name="segmentation_test" output="screen" pkg="lar_vision" type="lar_vision_segmentation_test">
+
+    <param name="cloud" value="/home/daniele/temp/table_top_simulated.pcd"/>
+    <param name="transform_path" value="/home/daniele/temp/table_top_simulated.txt"/>
+    <param name="slice_size" value="0.02"/>
+    <param name="object_slice_size" value="0.01"/>
+    <param name="reduction" value="15"/>
+    <param name="test_iterations" value="1"/>
+    <param name="angle_th" value="45"/>
+    <param name="offset" value="1.0"/>
+    <param name="min_inliers" value="100"/>
+    <param name="bg_color" value="255"/>
+    <param name="cluster_color" value="120"/>
+    <param name="filter_leaf" value="0.001"/>
+    <param name="segmentation_type" value="heightmap"/>
+
+  </node>
+
+</launch>

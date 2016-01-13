@@ -81,7 +81,7 @@ namespace lar_vision {
             this->points.push_back(this->p1);
             double d_norm = dir.norm();
             Eigen::Vector2f current = this->p1;
-            while (d_norm <= this->norm) {
+            while (d_norm < this->norm) {
                 current = current + dir;
                 points.push_back(current);
                 d_norm += dir.norm();

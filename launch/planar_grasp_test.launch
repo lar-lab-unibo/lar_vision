@@ -1,0 +1,23 @@
+<launch>
+
+  <node name="planar_grasp_test" output="screen" pkg="lar_vision" type="lar_vision_planar_grasp_test">
+
+    <param name="w" value="800"/>
+    <param name="h" value="800"/>
+    <param name="alpha" value="0.1"/>
+    <param name="delta" value="0.002"/>
+    <param name="eps" value="0.005"/>
+
+
+    <param name="discard_invalids" value="true"/>
+
+    <param name="grasp_min_offset" value="0.001"/>
+    <param name="grasp_max_offset" value="0.25"/>
+    <param name="grasp_min_radius" value="0.01"/>
+    <param name="grasp_max_radius" value="0.08"/>
+    <param name="grasp_fritction_cone_angle" value="0.707"/>
+    <param name="grasp_max_curvature" value="1"/>
+
+  </node>
+
+</launch>

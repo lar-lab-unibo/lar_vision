@@ -85,6 +85,7 @@ add_library(lar_vision
         src/commons/lar_vision_commons.cpp
         src/commons/Noiser.cpp
         src/segmentation/HighMap.cpp
+        src/segmentation/OnePointRansac.cpp
         src/grasping/Slicer.cpp
         src/grasping/Grasper.cpp
         src/grasping/grippers/GraspingGripper.cpp
@@ -126,3 +127,9 @@ target_link_libraries(${PROJECT_NAME}_tsdf_integration ${catkin_LIBRARIES} lar_v
 # TSDF ANALYZER
 add_executable(${PROJECT_NAME}_tsdf_analyzer  src/nodes/tsdf_analyzer.cpp)
 target_link_libraries(${PROJECT_NAME}_tsdf_analyzer ${catkin_LIBRARIES} lar_vision lar_tools)
+
+
+#TESTING
+# segmentation test
+add_executable(${PROJECT_NAME}_segmentation_test  src/nodes/testing/segmentation_test.cpp)
+target_link_libraries(${PROJECT_NAME}_segmentation_test ${catkin_LIBRARIES} lar_vision lar_tools)
