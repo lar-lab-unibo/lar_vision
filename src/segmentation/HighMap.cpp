@@ -21,6 +21,8 @@ HighMap::HighMap(double max_size, double step, double offset, double reduction) 
         this->step = step;
         this->offset = offset;
         this->reduction = reduction;
+        this->max_z = -std::numeric_limits<double>::max();
+        this->min_z = std::numeric_limits<double>::max();
         std::fill(this->map, this->map + (int) this->size, 0.0);
 }
 
@@ -37,10 +39,11 @@ void HighMap::clear() {
 }
 
 void HighMap::pinPoint(double z) {
-
         int iz = floor(z / step);
         iz += floor(this->offset / step);
         if (iz<this->size && iz >= 0) {
+                this->min_z = z < this->min_z ? z : this->min_z;
+                this->max_z = z > this->max_z ? z : this->max_z;
                 this->map[iz]++;
         }
 }
@@ -73,10 +76,10 @@ void HighMap::planesCheck(
         int map_min_inliers) {
 
 
-        this->highest_plane_z = -1000000000.0f;
+        this->highest_plane_z = -std::numeric_limits<double>::max();
 
         Eigen::Vector3f normal;
-        Eigen::Vector3f gravity_neg(0, 0, -1);
+        Eigen::Vector3f gravity_neg(0, 0, 1);
 
 
         for (int i = 0; i < cloud_normals->points.size(); i += reduction) {
@@ -91,6 +94,10 @@ void HighMap::planesCheck(
                         this->pinPoint(p.z);
                 }
         }
+
+        /*for(int i = 0; i < this->size; i++){
+            std::cout << "Map "<<i<<" "<<this->map[i]<<std::endl;
+        }*/
 
         float max_angle_rad = max_angle * M_PI / 180.0f;
         for (int i = 0; i < cloud->points.size(); i++) {

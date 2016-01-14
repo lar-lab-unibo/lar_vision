@@ -44,6 +44,8 @@ namespace lar_vision {
                 );
 
         double highest_plane_z;
+        double max_z;
+        double min_z;
     private:
         double* map;
         double size;
@@ -51,6 +53,7 @@ namespace lar_vision {
         double step;
         double offset;
         double reduction;
+
     };
 }
 

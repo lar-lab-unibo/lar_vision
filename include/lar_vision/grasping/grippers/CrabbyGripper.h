@@ -23,6 +23,8 @@
 #define CRABBY_GRIPPER_ORTHOGONAL_RANGE 0.087222222
 #define CRABBY_GRIPPER_FRICTION_CONE_ANGLE 0.523333333
 #define CRABBY_GRIPPER_MAX_CURVATURE 1.0
+#define CRABBY_GRIPPER_TYPE_LATERAL 1
+#define CRABBY_GRIPPER_TYPE_TOP 2
 
 namespace lar_vision {
 
@@ -31,6 +33,8 @@ namespace lar_vision {
         CrabbyGripper(int type = CRABBY_GRIPPER_STATUS_PARALLEL, double min_offset = 0.001f,double max_offset = 0.2f, double min = 0.01f, double max = 0.05f, double epsilon = CRABBY_GRIPPER_EPSILON, double fritction_cone_angle = CRABBY_GRIPPER_FRICTION_CONE_ANGLE, double ortogonal_range = CRABBY_GRIPPER_ORTHOGONAL_RANGE, double max_curvature = CRABBY_GRIPPER_MAX_CURVATURE);
         virtual ~CrabbyGripper();
         void find(std::vector<GrasperPoint>& points, std::vector<int>& indices, int jump = 0);
+        //void findLateral(std::vector<GrasperPoint>& points, std::vector<int>& indices, int jump = 0);
+        //void findTop(std::vector<GrasperPoint>& points, std::vector<int>& indices, int jump = 0);
         bool isValidPlanarConfiguration(std::vector<GrasperPoint>& points,std::vector<int>& indices);
         bool isValidPlanarConfiguration(std::vector<GrasperPoint>& points);
         bool isVectorPositiveCombinationOf(Eigen::Vector2f& vector, std::vector<GrasperPoint>& points);
