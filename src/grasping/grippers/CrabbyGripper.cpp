@@ -32,7 +32,7 @@ CrabbyGripper::CrabbyGripper(int type, double min_offset,double max_offset, doub
 CrabbyGripper::~CrabbyGripper() {
 }
 
-void CrabbyGripper::find(std::vector<GrasperPoint>& points, std::vector<int>& indices, int jump) {
+void CrabbyGripper::findLateral(std::vector<GrasperPoint>& points, std::vector<int>& indices, int jump) {
         Eigen::Vector2f target;
         Eigen::Vector2f pointer;
         double offset_distance;
@@ -103,6 +103,64 @@ void CrabbyGripper::find(std::vector<GrasperPoint>& points, std::vector<int>& in
                 }
         }
 }
+void CrabbyGripper::findTop(std::vector<GrasperPoint>& points, std::vector<int>& indices, int jump) {
+        Eigen::Vector2f target;
+        Eigen::Vector2f pointer;
+        double offset_distance;
+        double offset_orientation;
+        indices.clear();
+        int found = 0;
+        for (int i = 0; i < points.size(); i++) {
+                if(points[i].curvature > this->max_curvature) continue;
+                target = points[i].p;
+
+                for (int j = 0; j < points.size(); j++) {
+                        if (i != j) {
+                                if(points[j].curvature > this->max_curvature) continue;
+
+                                pointer = points[j].p;
+                                offset_distance = (target - pointer).norm();
+
+                                //if (fabs(offset_distance - this->offset) < this->epsilon) {
+                                if (offset_distance>= this->min_offset && offset_distance <= this->max_offset) {
+
+                                        if(this->auto_discard_planar_invalids) {
+                                                indices.push_back(i);
+                                                indices.push_back(j);
+                                                if(this->isValidPlanarConfiguration(points,indices)) {
+                                                        jump--;
+                                                        if(jump<=0) {
+                                                                return;
+                                                        }else{
+                                                                indices.clear();
+                                                        }
+                                                }else{
+                                                        indices.clear();
+                                                }
+                                        }else{
+                                                jump--;
+                                                if (jump <= 0) {
+                                                        indices.push_back(i);
+                                                        indices.push_back(j);
+                                                        return;
+                                                }
+                                        }
+
+
+
+                                }
+                        }
+                }
+        }
+}
+
+void CrabbyGripper::find(std::vector<GrasperPoint>& points, std::vector<int>& indices, int jump) {
+        if(this->type==CRABBY_GRIPPER_STATUS_PARALLEL) {
+                findLateral(points,indices,jump);
+        }else if(this->type==CRABBY_GRIPPER_STATUS_DUAL) {
+                findTop(points,indices,jump);
+        }
+}
 
 
 bool CrabbyGripper::isValidPlanarConfiguration(std::vector<GrasperPoint>& points,std::vector<int>& indices) {
@@ -115,28 +173,46 @@ bool CrabbyGripper::isValidPlanarConfiguration(std::vector<GrasperPoint>& points
 }
 
 bool CrabbyGripper::isValidPlanarConfiguration(std::vector<GrasperPoint>& points) {
+        if(this->type==CRABBY_GRIPPER_STATUS_PARALLEL) {
+                if(points.size() >= 3) {
+                        Eigen::Vector2f p1 = points[0].p;
+                        Eigen::Vector2f p2 = points[1].p;
+                        Eigen::Vector2f n1 = points[0].normal;
+                        Eigen::Vector2f n2 = points[1].normal;
+                        Eigen::Vector2f d1 = (p2-p1)*(1.0f / (p2-p1).norm());
+                        Eigen::Vector2f d2 = (p1-p2)*(1.0f / (p1-p2).norm());
 
-        if(points.size() >= 3) {
-                Eigen::Vector2f p1 = points[0].p;
-                Eigen::Vector2f p2 = points[1].p;
-                Eigen::Vector2f n1 = points[0].normal;
-                Eigen::Vector2f n2 = points[1].normal;
-                Eigen::Vector2f d1 = (p2-p1)*(1.0f / (p2-p1).norm());
-                Eigen::Vector2f d2 = (p1-p2)*(1.0f / (p1-p2).norm());
+                        double a1 = acos(n1.dot(d1));
+                        double a2 = acos(n2.dot(d2));
+                        double angle_limit = (M_PI*2.0-fritction_cone_angle)/2.0;
 
-                double a1 = acos(n1.dot(d1));
-                double a2 = acos(n2.dot(d2));
-                double angle_limit = (M_PI*2.0-fritction_cone_angle)/2.0;
+                        if(a1>angle_limit && a2>angle_limit) {
 
-                if(a1>angle_limit && a2>angle_limit) {
+                                Eigen::Vector2f p3 = points[2].p;
+                                Eigen::Vector2f n3 = points[2].normal;
+                                double a31 = acos(n3.dot(n1));
+                                double a32 = acos(n3.dot(n2));
+                                a31 = fabs(M_PI/2.0 -fabs(a31));
+                                a32 = fabs(M_PI/2.0 -fabs(a32));
+                                if(a31<=this->ortogonal_range && a32<=this->ortogonal_range) {
+                                        return true;
+                                }
+                        }
+                }
+        }else if(this->type==CRABBY_GRIPPER_STATUS_DUAL) {
+                if(points.size() >=2) {
+                        Eigen::Vector2f p1 = points[0].p;
+                        Eigen::Vector2f p2 = points[1].p;
+                        Eigen::Vector2f n1 = points[0].normal;
+                        Eigen::Vector2f n2 = points[1].normal;
+                        Eigen::Vector2f d1 = (p2-p1)*(1.0f / (p2-p1).norm());
+                        Eigen::Vector2f d2 = (p1-p2)*(1.0f / (p1-p2).norm());
 
-                        Eigen::Vector2f p3 = points[2].p;
-                        Eigen::Vector2f n3 = points[2].normal;
-                        double a31 = acos(n3.dot(n1));
-                        double a32 = acos(n3.dot(n2));
-                        a31 = fabs(M_PI/2.0 -fabs(a31));
-                        a32 = fabs(M_PI/2.0 -fabs(a32));
-                        if(a31<=this->ortogonal_range && a32<=this->ortogonal_range) {
+                        double a1 = acos(n1.dot(d1));
+                        double a2 = acos(n2.dot(d2));
+                        double angle_limit = (M_PI*2.0-fritction_cone_angle)/2.0;
+
+                        if(a1>angle_limit && a2>angle_limit) {
                                 return true;
                         }
                 }
@@ -154,36 +230,51 @@ bool CrabbyGripper::getApproachRF(std::vector<GrasperPoint>& points,std::vector<
         for (int i = 0; i < configuration_indices.size(); i++)
                 configuration_points.push_back(points[configuration_indices[i]]);
 
-        if(configuration_points.size()<3) return false;
+        if(this->type==CRABBY_GRIPPER_STATUS_PARALLEL) {
+
+                if(configuration_points.size()<3) return false;
 
 
 
-        Eigen::Vector2f middle = (configuration_points[0].p + configuration_points[1].p)*0.5f;
-        Eigen::Vector2f dir =  (configuration_points[2].p - middle);
+                Eigen::Vector2f middle = (configuration_points[0].p + configuration_points[1].p)*0.5f;
+                Eigen::Vector2f dir =  (configuration_points[2].p - middle);
 
-        double apporach_distance = dir.norm();
-        Eigen::Vector2f len = (configuration_points[0].p - configuration_points[1].p)*(1.0f / (configuration_points[0].p - configuration_points[1].p).norm());
-        Eigen::Vector2f L(len[1],-len[0]);
-        Eigen::Vector2f L_meter=L*apporach_distance;
-        Eigen::Vector2f check1 = middle+L_meter;
-        Eigen::Vector2f check2 = middle-L_meter;
-        Eigen::Vector2f check;
-        if(acos(dir.dot(check1))>acos(dir.dot(check2))) {
-                check=check2;
-        }else{
-                check=check1;
-                L = -L;
+                double apporach_distance = dir.norm();
+                Eigen::Vector2f len = (configuration_points[0].p - configuration_points[1].p)*(1.0f / (configuration_points[0].p - configuration_points[1].p).norm());
+                Eigen::Vector2f L(len[1],-len[0]);
+                Eigen::Vector2f L_meter=L*apporach_distance;
+                Eigen::Vector2f check1 = middle+L_meter;
+                Eigen::Vector2f check2 = middle-L_meter;
+                Eigen::Vector2f check;
+                if(acos(dir.dot(check1))>acos(dir.dot(check2))) {
+                        check=check2;
+                }else{
+                        check=check1;
+                        L = -L;
+                }
+
+                Eigen::Vector2f check_unit = check*(1.0/check.norm());
+                x = check[0];
+                y = check[1];
+                z = 0.0;
+                roll = 0;
+                pitch = 0;
+                yaw =  atan2(L[1],L[0]);
+
+                return true;
+        }else if(this->type==CRABBY_GRIPPER_STATUS_DUAL) {
+
+                if(configuration_points.size()<2) return false;
+
+                Eigen::Vector2f middle = (configuration_points[0].p + configuration_points[1].p)*0.5f;
+                Eigen::Vector2f dir(middle[1],-middle[0]);
+                
+                x = middle[0];
+                y = middle[1];
+                z = 0.0;
+                yaw =  atan2(dir[1],dir[0]);
         }
 
-        Eigen::Vector2f check_unit = check*(1.0/check.norm());
-        x = check[0];
-        y = check[1];
-        z = 0.0;
-        roll = 0;
-        pitch = 0;
-        yaw =  atan2(L[1],L[0]);
-
-        return true;
 }
 
 }

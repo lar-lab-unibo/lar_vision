@@ -45,6 +45,7 @@ double grasp_min_radius = 0.01;
 double grasp_max_radius = 0.05;
 double grasp_fritction_cone_angle = 1.57;
 double grasp_max_curvature = 1.57;
+int grasp_type = GRIPPER_STATUS_PARALLEL;
 
 int bypass = 0;
 pcl::PointCloud<PointType>::Ptr cloud(new pcl::PointCloud<PointType>);
@@ -101,7 +102,7 @@ void update() {
     cv::circle(img, cv::Point2f(grasper.centroid(0) * scale, grasper.centroid(1) * scale), 10.0f, cv::Scalar(0, 0, 255), 3);
 
 
-    CrabbyGripper gripper;
+    CrabbyGripper gripper(grasp_type);
 
     gripper.auto_discard_planar_invalids = discard_invalids;
     gripper.min_offset = grasp_min_offset;
@@ -158,6 +159,7 @@ int main(int argc, char** argv) {
     nh.param<double>("delta", delta, 0.01f);
     nh.param<double>("eps", eps, 0.005f);
     nh.param<bool>("discard_invalids", discard_invalids, false);
+    nh.param<int>("grasp_type", grasp_type, GRIPPER_STATUS_PARALLEL);
 
     nh.param<double>("grasp_min_offset",grasp_min_offset,0.01);
     nh.param<double>("grasp_max_offset",grasp_max_offset,0.2);

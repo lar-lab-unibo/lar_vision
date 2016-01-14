@@ -7,6 +7,7 @@
     <param name="alpha" value="0.1"/>
     <param name="delta" value="0.002"/>
     <param name="eps" value="0.005"/>
+    <param name="grasp_type" value="2"/>
 
 
     <param name="discard_invalids" value="true"/>
