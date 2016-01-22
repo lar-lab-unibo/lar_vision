@@ -270,20 +270,36 @@ int main(int argc, char** argv) {
                 int i = 0;
                 for(;; ) {
 
-                        std::string pose_filename = path + boost::lexical_cast<std::string>(i) + ".txt";
+                        
+                        std::string pose_filename = path + boost::lexical_cast<std::string>(i) +".txt";
+                        std::string pose_robot_filename = path + boost::lexical_cast<std::string>(i) + "_robot.txt";
+                        std::string pose_ee_filename = path + boost::lexical_cast<std::string>(i) + "_ee.txt";
                         std::string cloud_filename = path + boost::lexical_cast<std::string>(i) +cloud_suffix+ ".pcd";
 
                         pcl::PointCloud<PointType>::Ptr cloud(new pcl::PointCloud<PointType>());
                         pcl::PointCloud<PointType>::Ptr cloud_trans(new pcl::PointCloud<PointType>());
-                        Eigen::Matrix4d pose;
 
-                        std::cout << "Loading Pose\n";
-                        pose = lar_tools::load_transform_4x4_d(pose_filename);
+
+
+                        //pose = lar_tools::load_transform_4x4_d(pose_filename);
 
                         std::cout << "Loading Cloud\n";
                         if(pcl::io::loadPCDFile (cloud_filename, *cloud)==-1) {
                                 break;
                         }
+
+                        std::cout << "Loading Pose\n";
+                        Eigen::Matrix4d pose = lar_tools::load_transform_4x4_d(pose_filename);
+                        Eigen::Matrix4d pose_robot= lar_tools::load_transform_4x4_d(pose_robot_filename);;
+                        Eigen::Matrix4d pose_ee= lar_tools::load_transform_4x4_d(pose_ee_filename);;
+
+                        if(camera_noise) {
+                                std::cout << "Pose error:\n"<<camera_error_matrix<<std::endl;
+                                pose_ee = pose_ee * camera_error_matrix;
+
+                                pose = pose_robot * pose_ee;
+                        }
+
 
                         pcl::PassThrough<PointType> pass;
                         pass.setInputCloud (cloud);

@@ -17,9 +17,13 @@
 #include "lar_vision_commons.h"
 #include <pcl/common/io.h>
 #include <pcl/surface/concave_hull.h>
+#include <pcl/surface/convex_hull.h>
 
 #define LAR_VISION_GRASPER_POINT_TYPE_CONTACT_POINT 100
 #define LAR_VISION_GRASPER_POINT_TYPE_CONTROL_POINT 105
+
+#define LAR_VISION_GRASPER_HULL_TYPE_CONVEX 501
+#define LAR_VISION_GRASPER_HULL_TYPE_CONCAVE 502
 
 namespace lar_vision {
 
@@ -110,6 +114,7 @@ namespace lar_vision {
         Eigen::Vector2f centroid;
         int debug_jump;
         pcl::PointCloud<PointType>::Ptr hull;
+        int hull_type;
     private:
         void refinePoints();
         void computeNormals();
@@ -122,6 +127,7 @@ namespace lar_vision {
 
 
         int gripper_status;
+
 
     };
 }

@@ -2,18 +2,18 @@
 
   <node name="tsdf_integration" output="screen" pkg="lar_vision" type="lar_vision_tsdf_integration">
 
-    <param name="folder" value="/home/daniele/temp/barattolo/"/>
+    <param name="folder" value="/home/daniele/temp/temp_clouds/"/>
     <param name="out_folder" value="/home/daniele/temp/"/>
-    <param name="output_name" value="barattolo"/>
+    <param name="output_name" value="scene"/>
 
     <param name="width" value="640"/>
     <param name="height" value="480"/>
     <param name="crop_width" value="600"/>
     <param name="crop_height" value="400"/>
     <param name="tsdf_size" value="3.0"/>
-    <param name="cell_size" value="0.003"/>
-    <param name="trunc_dist_pos" value="0.03"/>
-    <param name="trunc_dist_neg" value="0.03"/>
+    <param name="cell_size" value="0.002"/>
+    <param name="trunc_dist_pos" value="0.3"/>
+    <param name="trunc_dist_neg" value="0.0"/>
     <param name="max_sensor_dist" value="3.0"/>
     <param name="min_sensor_dist" value="0.0"/>
     <param name="fx" value="526.247991"/>
@@ -29,6 +29,11 @@
     <param name="camera_error_roll" value="-0.08484"/>
     <param name="camera_error_pitch" value="-0.01414"/>
     <param name="camera_error_yaw" value="0.0"/>
+
+  <param name="leaf" value="0.005"/>
+  <param name="simple_merge" value="false"/>
+
+
 
 
 

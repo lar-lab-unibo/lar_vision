@@ -18,6 +18,7 @@ namespace lar_vision {
         this->concave_alpha = concave_alpha;
         this->discretization_step = discretization_step;
         this->debug_jump = 0;
+        this->hull_type = LAR_VISION_GRASPER_HULL_TYPE_CONVEX;
     }
 
     Grasper::~Grasper() {
@@ -28,10 +29,17 @@ namespace lar_vision {
         this->hull = pcl::PointCloud<PointType>::Ptr(new pcl::PointCloud<PointType>);
         this->lines.clear();
 
-        pcl::ConcaveHull<PointType> chull;
-        chull.setInputCloud(this->cloud);
-        chull.setAlpha(this->concave_alpha);
-        chull.reconstruct(*this->hull);
+        if(this->hull_type==LAR_VISION_GRASPER_HULL_TYPE_CONCAVE){
+          pcl::ConcaveHull<PointType> chull;
+          chull.setInputCloud(this->cloud);
+          chull.setAlpha(this->concave_alpha);
+          chull.reconstruct(*this->hull);
+        }else if(this->hull_type==LAR_VISION_GRASPER_HULL_TYPE_CONVEX){
+          pcl::ConvexHull<PointType> chull;
+          chull.setInputCloud(this->cloud);
+          chull.reconstruct(*this->hull);
+        }
+
 
         //LINES
         PointType last;
