@@ -128,8 +128,15 @@ target_link_libraries(${PROJECT_NAME}_tsdf_integration ${catkin_LIBRARIES} lar_v
 add_executable(${PROJECT_NAME}_tsdf_analyzer  src/nodes/tsdf_analyzer.cpp)
 target_link_libraries(${PROJECT_NAME}_tsdf_analyzer ${catkin_LIBRARIES} lar_vision lar_tools)
 
-
 #TESTING
 # segmentation test
 add_executable(${PROJECT_NAME}_segmentation_test  src/nodes/testing/segmentation_test.cpp)
 target_link_libraries(${PROJECT_NAME}_segmentation_test ${catkin_LIBRARIES} lar_vision lar_tools)
+
+#MARKER DETECTOR
+add_executable(${PROJECT_NAME}_marker_detector  src/nodes/marker_detector.cpp)
+target_link_libraries(${PROJECT_NAME}_marker_detector ${catkin_LIBRARIES} lar_vision lar_tools ${ARUCO_LIBS})
+
+#PARMA DOUBLE SET
+add_executable(${PROJECT_NAME}_parma_double_set  src/nodes/parma_double_set.cpp)
+target_link_libraries(${PROJECT_NAME}_parma_double_set ${catkin_LIBRARIES} lar_vision lar_tools )
