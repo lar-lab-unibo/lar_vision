@@ -49,6 +49,7 @@ include_directories(${lar_tools_INCLUDE_DIRS})
 #Includes
 include_directories(
   ${catkin_INCLUDE_DIRS}
+  ${CATKIN_DEVEL_PREFIX}/include
   include/${PROJECT_NAME}/
   include/${PROJECT_NAME}/commons
   include/${PROJECT_NAME}/segmentation
@@ -102,40 +103,40 @@ target_link_libraries (lar_vision ${catkin_LIBRARIES} ${OpenCV_LIBS} ${PCL_LIBRA
 #NODES
 
 # planar_grasp_test
-add_executable(${PROJECT_NAME}_planar_grasp_test  src/nodes/planar_grasp_test.cpp)
-target_link_libraries(${PROJECT_NAME}_planar_grasp_test ${catkin_LIBRARIES} lar_vision lar_tools)
+#add_executable(${PROJECT_NAME}_planar_grasp_test  src/nodes/planar_grasp_test.cpp)
+#target_link_libraries(${PROJECT_NAME}_planar_grasp_test ${catkin_LIBRARIES} lar_vision lar_tools)
 
 # match_clouds
-add_executable(${PROJECT_NAME}_match_clouds  src/nodes/match_clouds.cpp)
-target_link_libraries(${PROJECT_NAME}_match_clouds ${catkin_LIBRARIES} lar_vision lar_tools)
-add_dependencies(${PROJECT_NAME}_match_clouds ${PROJECT_NAME}_gencfg)
+#add_executable(${PROJECT_NAME}_match_clouds  src/nodes/match_clouds.cpp)
+#target_link_libraries(${PROJECT_NAME}_match_clouds ${catkin_LIBRARIES} lar_vision lar_tools)
+#add_dependencies(${PROJECT_NAME}_match_clouds ${PROJECT_NAME}_gencfg)
 
 # _camera_error_reduction
-add_executable(${PROJECT_NAME}_camera_error_reduction  src/nodes/camera_error_reduction.cpp)
-target_link_libraries(${PROJECT_NAME}_camera_error_reduction ${catkin_LIBRARIES} lar_vision lar_tools)
-add_dependencies(${PROJECT_NAME}_camera_error_reduction ${PROJECT_NAME}_gencfg)
+#add_executable(${PROJECT_NAME}_camera_error_reduction  src/nodes/camera_error_reduction.cpp)
+#target_link_libraries(${PROJECT_NAME}_camera_error_reduction ${catkin_LIBRARIES} lar_vision lar_tools)
+#add_dependencies(${PROJECT_NAME}_camera_error_reduction ${PROJECT_NAME}_gencfg)
 
 
 # height_map_segmentation_rf
-add_executable(${PROJECT_NAME}_height_map_segmentation_rf  src/nodes/height_map_segmentation_rf.cpp)
-target_link_libraries(${PROJECT_NAME}_height_map_segmentation_rf ${catkin_LIBRARIES} lar_vision lar_tools)
+#add_executable(${PROJECT_NAME}_height_map_segmentation_rf  src/nodes/height_map_segmentation_rf.cpp)
+#target_link_libraries(${PROJECT_NAME}_height_map_segmentation_rf ${catkin_LIBRARIES} lar_vision lar_tools)
 
 # TSDF INTEGRATION
-add_executable(${PROJECT_NAME}_tsdf_integration  src/nodes/tsdf_integration.cpp)
-target_link_libraries(${PROJECT_NAME}_tsdf_integration ${catkin_LIBRARIES} lar_vision lar_tools)
+#add_executable(${PROJECT_NAME}_tsdf_integration  src/nodes/tsdf_integration.cpp)
+#target_link_libraries(${PROJECT_NAME}_tsdf_integration ${catkin_LIBRARIES} lar_vision lar_tools)
 
 # TSDF ANALYZER
-add_executable(${PROJECT_NAME}_tsdf_analyzer  src/nodes/tsdf_analyzer.cpp)
-target_link_libraries(${PROJECT_NAME}_tsdf_analyzer ${catkin_LIBRARIES} lar_vision lar_tools)
+#add_executable(${PROJECT_NAME}_tsdf_analyzer  src/nodes/tsdf_analyzer.cpp)
+#target_link_libraries(${PROJECT_NAME}_tsdf_analyzer ${catkin_LIBRARIES} lar_vision lar_tools)
 
 #TESTING
 # segmentation test
-add_executable(${PROJECT_NAME}_segmentation_test  src/nodes/testing/segmentation_test.cpp)
-target_link_libraries(${PROJECT_NAME}_segmentation_test ${catkin_LIBRARIES} lar_vision lar_tools)
+#add_executable(${PROJECT_NAME}_segmentation_test  src/nodes/testing/segmentation_test.cpp)
+#target_link_libraries(${PROJECT_NAME}_segmentation_test ${catkin_LIBRARIES} lar_vision lar_tools)
 
 #MARKER DETECTOR
-add_executable(${PROJECT_NAME}_marker_detector  src/nodes/marker_detector.cpp)
-target_link_libraries(${PROJECT_NAME}_marker_detector ${catkin_LIBRARIES} lar_vision lar_tools ${ARUCO_LIBS})
+#add_executable(${PROJECT_NAME}_marker_detector  src/nodes/marker_detector.cpp)
+#target_link_libraries(${PROJECT_NAME}_marker_detector ${catkin_LIBRARIES} lar_vision lar_tools ${ARUCO_LIBS})
 
 #PARMA DOUBLE SET
 add_executable(${PROJECT_NAME}_parma_double_set  src/nodes/parma_double_set.cpp)
