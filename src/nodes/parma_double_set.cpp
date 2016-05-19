@@ -35,10 +35,10 @@
 #include <boost/thread/thread.hpp>
 
 //defines
-#define TARGET_OBJECT_TYPE_HORIZONTAL_PARALLEL 10001
-#define TARGET_OBJECT_TYPE_HORIZONTAL_SPHERICAL 10002
-#define TARGET_OBJECT_TYPE_VERTICAL_PARALLEL 10003
-#define TARGET_OBJECT_TYPE_VERTICAL_SPHERICAL 10004
+#define TARGET_OBJECT_TYPE_HORIZONTAL 10001
+#define TARGET_OBJECT_TYPE_VERTICAL 10003
+#define GRASP_TYPE_PARALLEL 20001
+#define GRASP_TYPE_TRIPOD 20002
 
 using namespace std;
 
@@ -93,6 +93,8 @@ struct Box {
 Box scene_bounding_box;
 double noise_distance_mag = 0.1;
 double target_approach_distance = 0.2;
+double target_waypoint_mul = 1.0;
+double target_waypoint_max_distance = 0.2;
 
 /** TRANSFORMS */
 Eigen::Matrix4d T_0_CAMERA_1;
@@ -111,6 +113,11 @@ struct TargetObject {
     Eigen::Matrix4d rf_refined;
     Eigen::Matrix4d rf_approach;
     int target_type;
+    bool valid;
+
+    TargetObject() {
+        valid = false;
+    }
 
     TargetObject(pcl::PointCloud<PointTypeColored>::Ptr& cloud_in) {
         cloud = cloud_in;
@@ -123,7 +130,21 @@ struct TargetObject {
         Eigen::Matrix4d approach;
         lar_tools::create_eigen_4x4_d(0, 0, -target_approach_distance, 0, 0, 0, approach);
         rf_approach = rf_refined * approach;
+        valid = true;
     }
+
+    Eigen::Matrix4d getWaypoint(double mul) {
+        if (target_type == TARGET_OBJECT_TYPE_HORIZONTAL) {
+            Eigen::Matrix4d waypoint;
+            lar_tools::create_eigen_4x4_d(0, 0, -target_waypoint_max_distance*mul, 0, 0, 0, waypoint);
+            return rf_approach*waypoint;
+        } else if (target_type == TARGET_OBJECT_TYPE_VERTICAL) {
+            Eigen::Matrix4d waypoint;
+            lar_tools::create_eigen_4x4_d(0, target_waypoint_max_distance*mul, -target_waypoint_max_distance*(mul*0.1), 0, 0, 0, waypoint);
+            return rf_approach*waypoint;
+        }
+    }
+
 
 };
 
@@ -145,6 +166,8 @@ struct TargetObjectSorterZ {
     }
 };
 std::vector<TargetObject> target_objects;
+int selected_target_index = -1;
+TargetObject selected_target_objects;
 
 /**
  * Convert geometry_msgs::Pose to KDL::Frame
@@ -215,18 +238,6 @@ void eigenToFrame(Eigen::Matrix4d& t, KDL::Frame& frame) {
         }
     }
     frame.p = KDL::Vector(t(0, 3), t(1, 3), t(2, 3));
-}
-
-/**
- * 3D Viewer Kayboard callbacks
- * @param event
- * @param viewer_void
- */
-void keyboardEventOccurred(const pcl::visualization::KeyboardEvent &event,
-        void* viewer_void) {
-    if (event.getKeySym() == "v" && event.keyDown()) {
-
-    }
 }
 
 void add_noise(pcl::PointCloud<PointType>::Ptr& cloud) {
@@ -372,7 +383,7 @@ void refineRF(Eigen::Matrix4d& rf, Eigen::Matrix4d& rf_refined, int& target_type
     if (fabs(magx) > fabs(magz)) {
 
         //OBJECT IS ORTHOGONAL TO THE GROUND
-        target_type = TARGET_OBJECT_TYPE_VERTICAL_PARALLEL;
+        target_type = TARGET_OBJECT_TYPE_VERTICAL;
         compute_projection(rf_refined, rf_refined, 'z');
         lar_tools::rotation_matrix_4x4_d('x', M_PI / 2.0, rotx);
         rf_refined = rf_refined * rotx;
@@ -387,7 +398,7 @@ void refineRF(Eigen::Matrix4d& rf, Eigen::Matrix4d& rf_refined, int& target_type
     } else {
 
         //OBJECT IS PARALLEL TO THE GROUND
-        target_type = TARGET_OBJECT_TYPE_HORIZONTAL_PARALLEL;
+        target_type = TARGET_OBJECT_TYPE_HORIZONTAL;
         compute_projection(rf_refined, rf_refined, 'z');
 
         Eigen::Vector3d new_z;
@@ -502,6 +513,103 @@ void build_scene() {
     filter_box_cloud(cloud_scene, scene_bounding_box, cloud_scene_boxed);
 }
 
+/**
+ * Target Object selection
+ */
+void select_target(bool reset = false) {
+
+    if (reset) {
+        selected_target_index = -1;
+    } else {
+        selected_target_index++;
+        if (selected_target_index > target_objects.size() - 1) {
+            selected_target_index = -1;
+        }
+    }
+
+    if (selected_target_index >= 0) {
+        selected_target_objects = target_objects[selected_target_index];
+
+    }
+}
+
+/**
+ * Adjusts global Waypoint multiplier
+ * @param d
+ */
+void adjust_multiplier(double d) {
+    target_waypoint_mul += d;
+    if (target_waypoint_mul > 1.0)target_waypoint_mul = 1.0;
+    if (target_waypoint_mul < 0.0)target_waypoint_mul = 0.0;
+    ROS_INFO("Waypoint multiplier: %f", target_waypoint_mul);
+}
+
+/**
+ * 3D Viewer Kayboard callbacks
+ * @param event
+ * @param viewer_void
+ */
+void keyboardEventOccurred(const pcl::visualization::KeyboardEvent &event,
+        void* viewer_void) {
+    if (event.getKeySym() == "a" && event.keyDown()) {
+        select_target();
+    }
+    if (event.getKeySym() == "x" && event.keyDown()) {
+        select_target(true);
+    }
+    if (event.getKeySym() == "m" && event.keyDown()) {
+        adjust_multiplier(0.1);
+    }
+    if (event.getKeySym() == "n" && event.keyDown()) {
+        adjust_multiplier(-0.1);
+    }
+}
+
+/**
+ * Visualization Part
+ */
+void visualize() {
+    viewer->removeAllPointClouds();
+    viewer->removeAllShapes();
+    viewer->addPointCloud(cloud_scene_boxed, "scene");
+
+    lar_vision::Palette palette;
+
+    std::stringstream ss;
+
+    for (int i = 0; i < target_objects.size(); +i++) {
+        Eigen::Vector3i color = palette.getColor();
+        ss.str("");
+        ss << "target_object_" << i;
+        lar_vision::display_cloud(*viewer, target_objects[i].cloud, color[0], color[1], color[2], 2.0, ss.str());
+        ss.str("");
+        ss << "target_" << i;
+
+
+        if (target_objects[i].target_type == TARGET_OBJECT_TYPE_HORIZONTAL) {
+            ss << "_horizontal";
+        } else if (target_objects[i].target_type == TARGET_OBJECT_TYPE_VERTICAL) {
+            ss << "_vertical";
+        }
+        lar_vision::draw_text_3D(*viewer, ss.str(), target_objects[i].centroid3, 255, 255, 255, 0.02, ss.str());
+        ss << "_rf";
+        lar_vision::draw_reference_frame(*viewer, target_objects[i].rf, 0.03f, ss.str());
+        ss << "_rf_ref";
+        lar_vision::draw_reference_frame(*viewer, target_objects[i].rf_refined, 0.1f, ss.str());
+        ss << "_rf_ref_approach";
+        lar_vision::draw_reference_frame(*viewer, target_objects[i].rf_approach, 0.12f, ss.str());
+
+
+    }
+
+    //Selected object
+    if (selected_target_index >= 0) {
+        lar_vision::display_cloud(*viewer, selected_target_objects.cloud, 255, 255, 255, 8.0, "selected_object");
+        Eigen::Matrix4d waypoint = selected_target_objects.getWaypoint(target_waypoint_mul);
+        lar_vision::draw_reference_frame(*viewer, waypoint, 0.2f, "selected_object_waypoint");
+    }
+}
+
 /** MAIN NODE **/
 int main(int argc, char** argv) {
 
@@ -518,11 +626,11 @@ int main(int argc, char** argv) {
     nh->param<double>("bounding_box_y_max", scene_bounding_box.y_max, 0.5);
     nh->param<double>("bounding_box_z_min", scene_bounding_box.z_min, 0.01);
     nh->param<double>("bounding_box_z_max", scene_bounding_box.z_max, 2.0);
-    nh->param<double>("noise_mag", noise_distance_mag, 0.1);
+    nh->param<double>("noise_mag", noise_distance_mag, 0.01);
     nh->param<double>("target_approach_distance", target_approach_distance, 0.2);
-    
-    
-    
+
+
+
     /** VIEWER */
     viewer = new pcl::visualization::PCLVisualizer("viewer");
     viewer->registerKeyboardCallback(keyboardEventOccurred, (void*) &viewer);
@@ -542,7 +650,7 @@ int main(int argc, char** argv) {
     //Topics Subscription/Advertising
     sub_cloud_1 = nh->subscribe(depth_topic_1, 1, cloud_1_cb);
     sub_cloud_2 = nh->subscribe(depth_topic_2, 1, cloud_2_cb);
-    bonmet_target_publisher = nh->advertise<geometry_msgs::PoseStamped>("/bonmetc60/target_ik",1);
+    bonmet_target_publisher = nh->advertise<geometry_msgs::PoseStamped>("/bonmetc60/target_ik", 1);
 
     // Spin & Time
     ros::Rate r(10);
@@ -551,43 +659,15 @@ int main(int argc, char** argv) {
 
         build_scene();
         build_clusters();
-
-        viewer->removeAllPointClouds();
-        viewer->removeAllShapes();
-        viewer->addPointCloud(cloud_scene_boxed, "scene");
-
-        lar_vision::Palette palette;
-
-        std::stringstream ss;
-
-        for (int i = 0; i < target_objects.size(); +i++) {
-            Eigen::Vector3i color = palette.getColor();
-            ss.str("");
-            ss << "target_object_" << i;
-            lar_vision::display_cloud(*viewer, target_objects[i].cloud, color[0], color[1], color[2], 2.0, ss.str());
-            ss.str("");
-            ss << "target_" << i;
+        visualize();
 
 
-            if (target_objects[i].target_type == TARGET_OBJECT_TYPE_HORIZONTAL_PARALLEL) {
-                ss << "_horizontal";
-            } else if (target_objects[i].target_type == TARGET_OBJECT_TYPE_VERTICAL_PARALLEL) {
-                ss << "_vertical";
-            }
-            lar_vision::draw_text_3D(*viewer, ss.str(), target_objects[i].centroid3, 255, 255, 255, 0.02, ss.str());
-            ss << "_rf";
-            lar_vision::draw_reference_frame(*viewer, target_objects[i].rf, 0.03f, ss.str());
-            ss << "_rf_ref";
-            lar_vision::draw_reference_frame(*viewer, target_objects[i].rf_refined, 0.1f, ss.str());
-            ss << "_rf_ref_approach";
-            lar_vision::draw_reference_frame(*viewer, target_objects[i].rf_approach, 0.12f, ss.str());
-            
-            if(i==0){
-                KDL::Frame target_frame;
-                eigenToFrame(target_objects[i].rf_approach,target_frame);
-                frameToPose(target_frame,bonmet_target_pose.pose);
-                bonmet_target_publisher.publish(bonmet_target_pose);
-            }
+        if (selected_target_index >= 0) {
+            KDL::Frame target_frame;
+            Eigen::Matrix4d waypoint = selected_target_objects.getWaypoint(target_waypoint_mul);
+            eigenToFrame(waypoint, target_frame);
+            frameToPose(target_frame, bonmet_target_pose.pose);
+            bonmet_target_publisher.publish(bonmet_target_pose);
         }
 
         //viewer->addPointCloud(cloud_trans_2,"cloud_2");
