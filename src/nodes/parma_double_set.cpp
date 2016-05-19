@@ -95,6 +95,7 @@ double noise_distance_mag = 0.1;
 double target_approach_distance = 0.2;
 double target_waypoint_mul = 1.0;
 double target_waypoint_max_distance = 0.2;
+int display_only_raw = 0;
 
 /** TRANSFORMS */
 Eigen::Matrix4d T_0_CAMERA_1;
@@ -140,7 +141,7 @@ struct TargetObject {
             return rf_approach*waypoint;
         } else if (target_type == TARGET_OBJECT_TYPE_VERTICAL) {
             Eigen::Matrix4d waypoint;
-            lar_tools::create_eigen_4x4_d(0, target_waypoint_max_distance*mul, -target_waypoint_max_distance*(mul*0.1), 0, 0, 0, waypoint);
+            lar_tools::create_eigen_4x4_d(0, target_waypoint_max_distance*mul, -target_waypoint_max_distance * (mul * 0.1), 0, 0, 0, waypoint);
             return rf_approach*waypoint;
         }
     }
@@ -577,6 +578,12 @@ void visualize() {
 
     std::stringstream ss;
 
+    if (display_only_raw > 0) {
+        viewer->addPointCloud(cloud_trans_1, "cam_1_cloud");
+        viewer->addPointCloud(cloud_trans_2, "cam_2_cloud");
+        return;
+    }
+    
     for (int i = 0; i < target_objects.size(); +i++) {
         Eigen::Vector3i color = palette.getColor();
         ss.str("");
@@ -617,7 +624,11 @@ int main(int argc, char** argv) {
     ros::init(argc, argv, "parma_double_set");
     ROS_INFO("parma_double_set node started...");
     nh = new ros::NodeHandle("~");
-
+    
+    
+    double cam_1_x,cam_1_y,cam_1_z;
+    double cam_2_x,cam_2_y,cam_2_z;
+    
     nh->param<std::string>("depth_topic_1", depth_topic_1, "/vrep/camera_depth_1");
     nh->param<std::string>("depth_topic_2", depth_topic_2, "/vrep/camera_depth_2");
     nh->param<double>("bounding_box_x_min", scene_bounding_box.x_min, 0.0);
@@ -628,7 +639,15 @@ int main(int argc, char** argv) {
     nh->param<double>("bounding_box_z_max", scene_bounding_box.z_max, 2.0);
     nh->param<double>("noise_mag", noise_distance_mag, 0.01);
     nh->param<double>("target_approach_distance", target_approach_distance, 0.2);
-
+    nh->param<int>("display_only_raw", display_only_raw, 0);
+    
+    nh->param<double>("cam_1_x", cam_1_x, 0.38);
+    nh->param<double>("cam_1_y", cam_1_y, 1.03);
+    nh->param<double>("cam_1_z", cam_1_z, 0.35);
+    
+    nh->param<double>("cam_2_x", cam_2_x, 0.40);
+    nh->param<double>("cam_2_y", cam_2_y, -0.6);
+    nh->param<double>("cam_2_z", cam_2_z, 0.25);
 
 
     /** VIEWER */
@@ -636,12 +655,24 @@ int main(int argc, char** argv) {
     viewer->registerKeyboardCallback(keyboardEventOccurred, (void*) &viewer);
 
     /** TRANSFORMS */
+    //VREP
+    //    lar_tools::create_eigen_4x4_d(0, 0, 0, 0, 0, 0, T_0_ROBOT);
+    //    lar_tools::create_eigen_4x4_d(0.5, -0.684, 0.616, 0, 0, 0, T_0_CAMERA_1);
+    //    lar_tools::create_eigen_4x4_d(0.5, 0.959, 0.617, 0, 0, 0, T_0_CAMERA_2);
+    //    Eigen::Matrix4d rotx, rotz;
+    //    lar_tools::rotation_matrix_4x4_d('x', M_PI / 2.0 + M_PI / 6.0, rotx);
+    //    lar_tools::rotation_matrix_4x4_d('z', M_PI, rotz);
+    //    T_0_CAMERA_2 = T_0_CAMERA_2 * rotx;
+    //    T_0_CAMERA_1 = T_0_CAMERA_1 * rotz;
+    //    T_0_CAMERA_1 = T_0_CAMERA_1 * rotx;
+
+    //Test Setup
     lar_tools::create_eigen_4x4_d(0, 0, 0, 0, 0, 0, T_0_ROBOT);
-    lar_tools::create_eigen_4x4_d(0.5, -0.684, 0.616, 0, 0, 0, T_0_CAMERA_1);
-    lar_tools::create_eigen_4x4_d(0.5, 0.959, 0.617, 0, 0, 0, T_0_CAMERA_2);
+    lar_tools::create_eigen_4x4_d(cam_1_x, cam_1_y, cam_1_z, 0, 0, 0, T_0_CAMERA_1);
+    lar_tools::create_eigen_4x4_d(cam_2_x, cam_2_y, cam_2_z, 0, 0, 0, T_0_CAMERA_2);
 
     Eigen::Matrix4d rotx, rotz;
-    lar_tools::rotation_matrix_4x4_d('x', M_PI / 2.0 + M_PI / 6.0, rotx);
+    lar_tools::rotation_matrix_4x4_d('x', -M_PI / 2.0, rotx);
     lar_tools::rotation_matrix_4x4_d('z', M_PI, rotz);
     T_0_CAMERA_2 = T_0_CAMERA_2 * rotx;
     T_0_CAMERA_1 = T_0_CAMERA_1 * rotz;
