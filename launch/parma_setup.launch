@@ -19,6 +19,17 @@
         <param name="bounding_box_z_min" value="0.05"/>
         <param name="bounding_box_z_max" value="0.8"/>
         
+        <param name="endeffector_rotation_correction" value="M_PI/4.0"/>
+        
+        <param name="camera_optical_correction_x" value="0.02"/>
+        <param name="camera_optical_correction_y" value="0.0"/>
+        <param name="camera_optical_correction_z" value="0.0"/>
+        <param name="camera_optical_correction_roll" value="0.0"/>
+        <param name="camera_optical_correction_pitch" value="0.0"/>
+        <param name="camera_optical_correction_yaw" value="0.0"/>
+
+         <param name="scene_correction_yaw" value="-1.57"/>
+
 
     </node>
     
