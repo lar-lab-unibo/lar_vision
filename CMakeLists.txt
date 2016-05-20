@@ -135,8 +135,8 @@ target_link_libraries (lar_vision ${catkin_LIBRARIES} ${OpenCV_LIBS} ${PCL_LIBRA
 #target_link_libraries(${PROJECT_NAME}_segmentation_test ${catkin_LIBRARIES} lar_vision lar_tools)
 
 #MARKER DETECTOR
-#add_executable(${PROJECT_NAME}_marker_detector  src/nodes/marker_detector.cpp)
-#target_link_libraries(${PROJECT_NAME}_marker_detector ${catkin_LIBRARIES} lar_vision lar_tools ${ARUCO_LIBS})
+add_executable(${PROJECT_NAME}_marker_detector  src/nodes/marker_detector.cpp)
+target_link_libraries(${PROJECT_NAME}_marker_detector ${catkin_LIBRARIES} lar_vision lar_tools ${ARUCO_LIBS})
 
 #PARMA DOUBLE SET
 add_executable(${PROJECT_NAME}_parma_double_set  src/nodes/parma_double_set.cpp)

@@ -73,11 +73,17 @@ pcl::PassThrough<PointType> pass_filter;
 //Topics
 std::string depth_topic_1;
 std::string depth_topic_2;
+std::string pose_topic_1;
+std::string pose_topic_2;
 ros::Subscriber sub_cloud_1;
 ros::Subscriber sub_cloud_2;
+ros::Subscriber sub_pose_1;
+ros::Subscriber sub_pose_2;
 ros::Publisher bonmet_target_publisher;
 
 geometry_msgs::PoseStamped bonmet_target_pose;
+geometry_msgs::PoseStamped camera_1_pose;
+geometry_msgs::PoseStamped camera_2_pose;
 
 
 //Parameters
@@ -472,6 +478,51 @@ void filter_box_cloud(pcl::PointCloud<PointType>::Ptr cloud_in,
 }
 
 /**
+ * Corrects tuning camera pose
+ * @param CAMERA_POSE
+ */
+void correct_camera_pose(Eigen::Matrix4d& CAMERA_POSE) {
+    Eigen::Matrix4d depth_corr;
+    lar_tools::create_eigen_4x4_d(0.02, 0, 0, 0, 0, 0.0, depth_corr);
+    CAMERA_POSE = CAMERA_POSE * depth_corr;
+    
+    Eigen::Matrix4d corr;
+    lar_tools::create_eigen_4x4_d(0, 0, 0, 0, 0.0, -M_PI/2.0, corr);
+    CAMERA_POSE = corr * CAMERA_POSE;
+    
+    Eigen::Matrix4d error;
+    lar_tools::create_eigen_4x4_d(-(0.175/2.0 + 0.1), -0.05, 0.1, 0, 0.0, 0.0, error);
+    
+    CAMERA_POSE(0,3)+=0.175/2.0 + 0.1;
+    CAMERA_POSE(1,3)+=-0.05;
+    CAMERA_POSE(2,3)+=-0.05;
+    
+    //CAMERA_POSE = CAMERA_POSE*error;
+}
+
+/**
+ * Callbacks for Camera 2
+ */
+void pose_1_cb(const geometry_msgs::PoseStamped& msg) {
+    camera_1_pose = msg;
+    KDL::Frame f;
+    poseToFrame(camera_1_pose.pose, f);
+    frameToEigen(f, T_0_CAMERA_1);
+    correct_camera_pose(T_0_CAMERA_1);
+}
+
+/**
+ * Callbacks for Camera 2
+ */
+void pose_2_cb(const geometry_msgs::PoseStamped& msg) {
+    camera_2_pose = msg;
+    KDL::Frame f;
+    poseToFrame(camera_2_pose.pose, f);
+    frameToEigen(f, T_0_CAMERA_2);
+    correct_camera_pose(T_0_CAMERA_2);
+}
+
+/**
  * Callbacks for Camera 1
  * @param input
  */
@@ -583,7 +634,7 @@ void visualize() {
         viewer->addPointCloud(cloud_trans_2, "cam_2_cloud");
         return;
     }
-    
+
     for (int i = 0; i < target_objects.size(); +i++) {
         Eigen::Vector3i color = palette.getColor();
         ss.str("");
@@ -617,6 +668,15 @@ void visualize() {
     }
 }
 
+/**
+ * End effect correction
+ */
+void endeffector_more_rotation(Eigen::Matrix4d& T){
+    Eigen::Matrix4d rot;
+    lar_tools::create_eigen_4x4_d(0, 0, 0, 0, 0.0, M_PI/4.0, rot);
+    T = T * rot;
+}
+
 /** MAIN NODE **/
 int main(int argc, char** argv) {
 
@@ -624,13 +684,16 @@ int main(int argc, char** argv) {
     ros::init(argc, argv, "parma_double_set");
     ROS_INFO("parma_double_set node started...");
     nh = new ros::NodeHandle("~");
-    
-    
-    double cam_1_x,cam_1_y,cam_1_z;
-    double cam_2_x,cam_2_y,cam_2_z;
-    
+
+    double hz;
+    double cam_1_x, cam_1_y, cam_1_z;
+    double cam_2_x, cam_2_y, cam_2_z;
+
     nh->param<std::string>("depth_topic_1", depth_topic_1, "/vrep/camera_depth_1");
     nh->param<std::string>("depth_topic_2", depth_topic_2, "/vrep/camera_depth_2");
+    nh->param<std::string>("pose_topic_1", pose_topic_1, "/asus1_pose");
+    nh->param<std::string>("pose_topic_2", pose_topic_2, "/asus2_pose");
+
     nh->param<double>("bounding_box_x_min", scene_bounding_box.x_min, 0.0);
     nh->param<double>("bounding_box_x_max", scene_bounding_box.x_max, 1.0);
     nh->param<double>("bounding_box_y_min", scene_bounding_box.y_min, -0.5);
@@ -639,12 +702,13 @@ int main(int argc, char** argv) {
     nh->param<double>("bounding_box_z_max", scene_bounding_box.z_max, 2.0);
     nh->param<double>("noise_mag", noise_distance_mag, 0.01);
     nh->param<double>("target_approach_distance", target_approach_distance, 0.2);
+    nh->param<double>("hz", hz, 100);
     nh->param<int>("display_only_raw", display_only_raw, 0);
-    
+
     nh->param<double>("cam_1_x", cam_1_x, 0.38);
     nh->param<double>("cam_1_y", cam_1_y, 1.03);
     nh->param<double>("cam_1_z", cam_1_z, 0.35);
-    
+
     nh->param<double>("cam_2_x", cam_2_x, 0.40);
     nh->param<double>("cam_2_y", cam_2_y, -0.6);
     nh->param<double>("cam_2_z", cam_2_z, 0.25);
@@ -681,10 +745,13 @@ int main(int argc, char** argv) {
     //Topics Subscription/Advertising
     sub_cloud_1 = nh->subscribe(depth_topic_1, 1, cloud_1_cb);
     sub_cloud_2 = nh->subscribe(depth_topic_2, 1, cloud_2_cb);
+    sub_pose_1 = nh->subscribe(pose_topic_1, 1, pose_1_cb);
+    sub_pose_2 = nh->subscribe(pose_topic_2, 1, pose_2_cb);
+
     bonmet_target_publisher = nh->advertise<geometry_msgs::PoseStamped>("/bonmetc60/target_ik", 1);
 
     // Spin & Time
-    ros::Rate r(10);
+    ros::Rate r(hz);
     // Spin
     while (nh->ok() && !viewer->wasStopped()) {
 
@@ -696,6 +763,7 @@ int main(int argc, char** argv) {
         if (selected_target_index >= 0) {
             KDL::Frame target_frame;
             Eigen::Matrix4d waypoint = selected_target_objects.getWaypoint(target_waypoint_mul);
+            endeffector_more_rotation(waypoint);
             eigenToFrame(waypoint, target_frame);
             frameToPose(target_frame, bonmet_target_pose.pose);
             bonmet_target_publisher.publish(bonmet_target_pose);

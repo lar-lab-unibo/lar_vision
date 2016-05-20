@@ -1,9 +1,9 @@
 <launch>
 
   <!-- Parameters possible to change-->
-  <arg name="camera1_id" default="1@1"/>
+  <arg name="camera1_id" default="#1"/>
   <!-- here you can change 1@0 by the serial number -->
-  <arg name="camera2_id" default="1@0"/>
+  <arg name="camera2_id" default="#2"/>
   <!-- here you can change 2@0 by the serial number -->
   <arg name="depth_registration" default="true"/>
 

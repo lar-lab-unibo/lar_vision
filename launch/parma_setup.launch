@@ -1,0 +1,27 @@
+<launch>
+
+    <node name="parma_setup" output="screen" pkg="lar_vision" type="lar_vision_parma_double_set">
+
+        <param name="depth_topic_1" value="/asus1/depth/points"/>
+        <param name="depth_topic_2" value="/asus2/depth/points"/>
+        
+        <param name="pose_topic_1" value="/asus1_pose"/>
+        <param name="pose_topic_2" value="/asus2_pose"/>
+        
+        <param name="display_only_raw" value="0"/>
+        
+        <param name="hz" value="30"/>
+        
+        <param name="bounding_box_x_min" value="0.3"/>
+        <param name="bounding_box_x_max" value="1.0"/>
+        <param name="bounding_box_y_min" value="-0.4"/>
+        <param name="bounding_box_y_max" value="0.4"/>
+        <param name="bounding_box_z_min" value="0.05"/>
+        <param name="bounding_box_z_max" value="0.8"/>
+        
+
+    </node>
+    
+
+
+</launch>
