@@ -1,0 +1,42 @@
+<launch>
+
+    <node name="parma_setup" output="screen" pkg="lar_vision" type="lar_vision_parma_double_set">
+
+        <param name="depth_topic_1" value="/vrep/camera_depth_1"/>
+        <param name="depth_topic_2" value="/vrep/camera_depth_2"/>
+
+        <param name="pose_topic_1" value="/vrep/camera_pose_1"/>
+        <param name="pose_topic_2" value="/vrep/camera_pose_2"/>
+
+        <param name="display_only_raw" value="0"/>
+
+        <param name="hz" value="5"/>
+
+        <param name="bounding_box_x_min" value="0.4"/>
+        <param name="bounding_box_x_max" value="2.0"/>
+        <param name="bounding_box_y_min" value="-0.5"/>
+        <param name="bounding_box_y_max" value="0.5"/>
+        <param name="bounding_box_z_min" value="0.0"/>
+        <param name="bounding_box_z_max" value="0.8"/>
+
+        <param name="endeffector_rotation_correction" value="0.0"/>
+        
+        <param name="camera_optical_correction_x" value="0.0"/>
+        <param name="camera_optical_correction_y" value="0.0"/>
+        <param name="camera_optical_correction_z" value="0.0"/>
+        <param name="camera_optical_correction_roll" value="0.0"/>
+        <param name="camera_optical_correction_pitch" value="0.0"/>
+        <param name="camera_optical_correction_yaw" value="0.0"/>
+        
+        <param name="scene_correction_yaw" value="0.0"/>
+       
+        <param name="thick_clusters" value="1"/>
+        <param name="thick_clusters_size" value="10"/>
+        <param name="thick_clusters_voxel_size" value="0.01"/>
+
+        
+    </node>
+
+
+
+</launch>

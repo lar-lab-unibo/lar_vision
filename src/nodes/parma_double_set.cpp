@@ -25,6 +25,8 @@
 #include <pcl/filters/passthrough.h>
 #include <pcl/segmentation/extract_clusters.h>
 #include <pcl/features/shot_lrf.h>
+#include <pcl/filters/voxel_grid.h>
+#include <pcl/keypoints/uniform_sampling.h>
 
 //CUSTOM NODES
 #include "lar_tools.h"
@@ -102,6 +104,21 @@ double target_approach_distance = 0.2;
 double target_waypoint_mul = 1.0;
 double target_waypoint_max_distance = 0.2;
 int display_only_raw = 0;
+
+struct SimpleFrame {
+    double x, y, z;
+    double roll, pitch, yaw;
+};
+
+double endeffector_rotation_correction;
+
+SimpleFrame camera_optical_correction_frame;
+SimpleFrame scene_correction_frame;
+
+int thick_clusters = 1;
+int thick_clusters_size = 10;
+double thick_clusters_voxel_size = 0.01;
+
 
 /** TRANSFORMS */
 Eigen::Matrix4d T_0_CAMERA_1;
@@ -420,6 +437,47 @@ void refineRF(Eigen::Matrix4d& rf, Eigen::Matrix4d& rf_refined, int& target_type
 }
 
 /**
+ * Thickens Cluster densing points under top surface
+ * @param cluster_in
+ * @param cluster_out
+ */
+void thickens_cluster(pcl::PointCloud<PointTypeColored>::Ptr& cluster_in, pcl::PointCloud<PointTypeColored>::Ptr& cluster_out, int steps, double top_z_percentage = 0.8) {
+
+    pcl::PointCloud<PointTypeColored>::Ptr temp_cloud(new pcl::PointCloud<PointTypeColored>);
+    double temp_x, temp_y, temp_z, temp_step, top_z = 0.0;
+    //    for (int i = 0; i < cluster_in->points.size(); i++) {
+    //        top_z = cluster_in->points[i].z > top_z ? cluster_in->points[i].z : top_z;
+    //    }
+    //    top_z = top_z*top_z_percentage;
+
+    for (int i = 0; i < cluster_in->points.size(); i++) {
+        //        if(cluster_in->points[i].z<top_z)continue;
+        temp_x = cluster_in->points[i].x;
+        temp_y = cluster_in->points[i].y;
+        temp_z = cluster_in->points[i].z;
+        temp_step = temp_z / (double) steps;
+        for (int j = 0; j < steps; j++) {
+            PointTypeColored p;
+            p.x = temp_x;
+            p.y = temp_y;
+            p.z = temp_z - j*temp_step;
+            temp_cloud->points.push_back(p);
+        }
+    }
+
+//    pcl::UniformSampling<PointTypeColored> uniform_sampling;
+//    uniform_sampling.setInputCloud(temp_cloud);
+//    uniform_sampling.setRadiusSearch(thick_clusters_voxel_size);
+//    uniform_sampling.compute(cluster_out);
+        cluster_out->points.clear();
+        pcl::VoxelGrid<PointTypeColored> sor;
+        sor.setInputCloud(temp_cloud);
+       
+        sor.setLeafSize(thick_clusters_voxel_size,thick_clusters_voxel_size,thick_clusters_voxel_size);
+        sor.filter(*cluster_out);
+}
+
+/**
  * Clusterizes scene
  */
 void build_clusters() {
@@ -440,7 +498,13 @@ void build_clusters() {
     for (int i = 0; i < cluster_indices.size(); i++) {
         pcl::PointCloud<PointTypeColored>::Ptr cluster(new pcl::PointCloud<PointTypeColored>);
         pcl::copyPointCloud(*cloud_scene_boxed, cluster_indices[i].indices, *cluster);
-        target_objects.push_back(TargetObject(cluster));
+        if (thick_clusters > 0) {
+            pcl::PointCloud<PointTypeColored>::Ptr cluster_thick(new pcl::PointCloud<PointTypeColored>);
+            thickens_cluster(cluster, cluster_thick, thick_clusters_size);
+            target_objects.push_back(TargetObject(cluster_thick));
+        } else {
+            target_objects.push_back(TargetObject(cluster));
+        }
     }
     std::sort(target_objects.begin(), target_objects.end(), TargetObjectSorterX());
 
@@ -483,20 +547,28 @@ void filter_box_cloud(pcl::PointCloud<PointType>::Ptr cloud_in,
  */
 void correct_camera_pose(Eigen::Matrix4d& CAMERA_POSE) {
     Eigen::Matrix4d depth_corr;
-    lar_tools::create_eigen_4x4_d(0.02, 0, 0, 0, 0, 0.0, depth_corr);
+    lar_tools::create_eigen_4x4_d(
+            camera_optical_correction_frame.x,
+            camera_optical_correction_frame.y,
+            camera_optical_correction_frame.z,
+            camera_optical_correction_frame.roll,
+            camera_optical_correction_frame.pitch,
+            camera_optical_correction_frame.yaw,
+            depth_corr);
     CAMERA_POSE = CAMERA_POSE * depth_corr;
-    
+
+    //TODO: prova a mettere tutti i parametri di correzione in CORR e pre-moltiplica
     Eigen::Matrix4d corr;
-    lar_tools::create_eigen_4x4_d(0, 0, 0, 0, 0.0, -M_PI/2.0, corr);
+    lar_tools::create_eigen_4x4_d(0, 0, 0, 0, 0.0, scene_correction_frame.yaw, corr);
     CAMERA_POSE = corr * CAMERA_POSE;
-    
+
     Eigen::Matrix4d error;
-    lar_tools::create_eigen_4x4_d(-(0.175/2.0 + 0.1), -0.05, 0.1, 0, 0.0, 0.0, error);
-    
-    CAMERA_POSE(0,3)+=0.175/2.0 + 0.1;
-    CAMERA_POSE(1,3)+=-0.05;
-    CAMERA_POSE(2,3)+=-0.05;
-    
+    lar_tools::create_eigen_4x4_d(-(0.175 / 2.0 + 0.1), -0.05, 0.1, 0, 0.0, 0.0, error);
+
+    CAMERA_POSE(0, 3) += 0.175 / 2.0 + 0.1;
+    CAMERA_POSE(1, 3) += -0.05;
+    CAMERA_POSE(2, 3) += -0.05;
+
     //CAMERA_POSE = CAMERA_POSE*error;
 }
 
@@ -623,7 +695,7 @@ void keyboardEventOccurred(const pcl::visualization::KeyboardEvent &event,
 void visualize() {
     viewer->removeAllPointClouds();
     viewer->removeAllShapes();
-    viewer->addPointCloud(cloud_scene_boxed, "scene");
+    
 
     lar_vision::Palette palette;
 
@@ -671,9 +743,9 @@ void visualize() {
 /**
  * End effect correction
  */
-void endeffector_more_rotation(Eigen::Matrix4d& T){
+void endeffector_more_rotation(Eigen::Matrix4d& T) {
     Eigen::Matrix4d rot;
-    lar_tools::create_eigen_4x4_d(0, 0, 0, 0, 0.0, M_PI/4.0, rot);
+    lar_tools::create_eigen_4x4_d(0, 0, 0, 0, 0.0, endeffector_rotation_correction, rot);
     T = T * rot;
 }
 
@@ -700,18 +772,33 @@ int main(int argc, char** argv) {
     nh->param<double>("bounding_box_y_max", scene_bounding_box.y_max, 0.5);
     nh->param<double>("bounding_box_z_min", scene_bounding_box.z_min, 0.01);
     nh->param<double>("bounding_box_z_max", scene_bounding_box.z_max, 2.0);
+
+    nh->param<double>("endeffector_rotation_correction", endeffector_rotation_correction, 0.0);
+
+    nh->param<double>("camera_optical_correction_x", camera_optical_correction_frame.x, 0.0);
+    nh->param<double>("camera_optical_correction_y", camera_optical_correction_frame.y, 0.0);
+    nh->param<double>("camera_optical_correction_z", camera_optical_correction_frame.z, 0.0);
+    nh->param<double>("camera_optical_correction_roll", camera_optical_correction_frame.roll, 0.0);
+    nh->param<double>("camera_optical_correction_pitch", camera_optical_correction_frame.pitch, 0.0);
+    nh->param<double>("camera_optical_correction_yaw", camera_optical_correction_frame.yaw, 0.0);
+
+    nh->param<double>("scene_correction_x", scene_correction_frame.x, 0.0);
+    nh->param<double>("scene_correction_y", scene_correction_frame.y, 0.0);
+    nh->param<double>("scene_correction_z", scene_correction_frame.z, 0.0);
+    nh->param<double>("scene_correction_roll", scene_correction_frame.roll, 0.0);
+    nh->param<double>("scene_correction_pitch", scene_correction_frame.pitch, 0.0);
+    nh->param<double>("scene_correction_yaw", scene_correction_frame.yaw, 0.0);
+
+
     nh->param<double>("noise_mag", noise_distance_mag, 0.01);
     nh->param<double>("target_approach_distance", target_approach_distance, 0.2);
     nh->param<double>("hz", hz, 100);
     nh->param<int>("display_only_raw", display_only_raw, 0);
 
-    nh->param<double>("cam_1_x", cam_1_x, 0.38);
-    nh->param<double>("cam_1_y", cam_1_y, 1.03);
-    nh->param<double>("cam_1_z", cam_1_z, 0.35);
+    nh->param<int>("thick_clusters", thick_clusters, 0);
+    nh->param<int>("thick_clusters_size", thick_clusters_size, 10);
+    nh->param<double>("thick_clusters_voxel_size", thick_clusters_voxel_size, 0.01);
 
-    nh->param<double>("cam_2_x", cam_2_x, 0.40);
-    nh->param<double>("cam_2_y", cam_2_y, -0.6);
-    nh->param<double>("cam_2_z", cam_2_z, 0.25);
 
 
     /** VIEWER */
@@ -732,8 +819,8 @@ int main(int argc, char** argv) {
 
     //Test Setup
     lar_tools::create_eigen_4x4_d(0, 0, 0, 0, 0, 0, T_0_ROBOT);
-    lar_tools::create_eigen_4x4_d(cam_1_x, cam_1_y, cam_1_z, 0, 0, 0, T_0_CAMERA_1);
-    lar_tools::create_eigen_4x4_d(cam_2_x, cam_2_y, cam_2_z, 0, 0, 0, T_0_CAMERA_2);
+    lar_tools::create_eigen_4x4_d(0, 0, 0, 0, 0, 0, T_0_CAMERA_1);
+    lar_tools::create_eigen_4x4_d(0, 0, 0, 0, 0, 0, T_0_CAMERA_2);
 
     Eigen::Matrix4d rotx, rotz;
     lar_tools::rotation_matrix_4x4_d('x', -M_PI / 2.0, rotx);
