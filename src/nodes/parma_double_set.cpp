@@ -42,6 +42,9 @@
 #define GRASP_TYPE_PARALLEL 20001
 #define GRASP_TYPE_TRIPOD 20002
 
+#define HARD_Z_MINIMUM 0.10
+#define HARD_Z_MINIMUM_FROMTOP 0.25
+
 using namespace std;
 
 //ROS
@@ -54,6 +57,7 @@ typedef pcl::Normal NormalType;
 //Pre Declaration
 void computeRF(pcl::PointCloud<PointTypeColored>::Ptr& cloud, Eigen::Matrix4d& t);
 void refineRF(Eigen::Matrix4d& rf, Eigen::Matrix4d& rf_refined, int& target_type);
+void refineRFApproach(Eigen::Matrix4d& rf_approach, int target_type);
 
 //CLOUDS & VIEWER
 pcl::visualization::PCLVisualizer* viewer;
@@ -119,6 +123,12 @@ int thick_clusters = 1;
 int thick_clusters_size = 10;
 double thick_clusters_voxel_size = 0.01;
 
+double vertical_object_grasp_angle = M_PI / 4.0;
+
+double minimum_endeffector_z = 0.25;
+double minimum_endeffector_z_fromtop = 0.25;
+double minimum_height_for_vertical = 0.40;
+
 
 /** TRANSFORMS */
 Eigen::Matrix4d T_0_CAMERA_1;
@@ -154,6 +164,7 @@ struct TargetObject {
         Eigen::Matrix4d approach;
         lar_tools::create_eigen_4x4_d(0, 0, -target_approach_distance, 0, 0, 0, approach);
         rf_approach = rf_refined * approach;
+        refineRFApproach(rf_approach,target_type);
         valid = true;
     }
 
@@ -276,6 +287,21 @@ void add_noise(pcl::PointCloud<PointType>::Ptr& cloud) {
 }
 
 /**
+ * Further controls on RF Approach
+ */
+void refineRFApproach(Eigen::Matrix4d& rf_approach, int target_type) {
+    double limit=1.0;
+    if (target_type == TARGET_OBJECT_TYPE_VERTICAL) {
+        limit = minimum_endeffector_z;
+    } else if (target_type == TARGET_OBJECT_TYPE_HORIZONTAL) {
+        limit = minimum_endeffector_z_fromtop;
+    }
+    if (rf_approach(2, 3) < limit) {
+        rf_approach(2, 3) = limit;
+    }
+}
+
+/**
  * Computes SHOT RF for a terget Cloud
  * @param cloud
  * @param t
@@ -381,6 +407,54 @@ void compute_projection(Eigen::Matrix4d& rf, Eigen::Matrix4d& t_projected, char 
 }
 
 /**
+ * Computer Projection for vertical objects
+ */
+void compute_vertical_projection(Eigen::Matrix4d& rf, Eigen::Matrix4d& t_projected, char up_axis = 'z') {
+
+    Eigen::Vector3d x, y, z;
+    Eigen::Matrix4d rotz, rotx, roty;
+
+    x << 1, 0, 0;
+    y << 0, 1, 0;
+    z << 0, 0, 1;
+
+    double beta_y = atan2(rf(1, 1), rf(0, 1));
+    double beta_x = atan2(rf(1, 0), rf(0, 0));
+
+    lar_tools::rotation_matrix_4x4_d('z', beta_y, rotz);
+
+    Eigen::Vector4d old_y, old_x, new_x, new_y;
+    old_y << y(0), y(1), y(2), 1;
+    old_x << x(0), x(1), x(2), 1;
+    new_y = rotz*old_y;
+    new_x = rotz*old_x;
+
+    t_projected(0, 0) = 1;
+    t_projected(1, 0) = 0;
+    t_projected(2, 0) = 0;
+
+    t_projected(0, 1) = 0;
+    t_projected(1, 1) = 1;
+    t_projected(2, 1) = 0;
+
+    t_projected(0, 2) = 0;
+    t_projected(1, 2) = 0;
+    t_projected(2, 2) = 1;
+
+    Eigen::Matrix4d rot;
+    if (up_axis == 'z') {
+
+    } else if (up_axis == 'x') {
+        lar_tools::rotation_matrix_4x4_d('y', M_PI / 2.0, rot);
+        t_projected = t_projected * rot;
+    } else if (up_axis == 'y') {
+
+    }
+
+
+}
+
+/**
  * Refines RF for custom task
  * @param rf
  * @param rf_refined
@@ -403,14 +477,18 @@ void refineRF(Eigen::Matrix4d& rf, Eigen::Matrix4d& rf_refined, int& target_type
     double magx = rf_x.dot(z);
 
     rf_refined = rf;
-
-    if (fabs(magx) > fabs(magz)) {
+    
+    
+    
+    if (fabs(magx) > fabs(magz) && rf_refined(2,3)>=minimum_height_for_vertical) {
 
         //OBJECT IS ORTHOGONAL TO THE GROUND
         target_type = TARGET_OBJECT_TYPE_VERTICAL;
-        compute_projection(rf_refined, rf_refined, 'z');
+        compute_vertical_projection(rf_refined, rf_refined, 'z');
         lar_tools::rotation_matrix_4x4_d('x', M_PI / 2.0, rotx);
         rf_refined = rf_refined * rotx;
+        lar_tools::rotation_matrix_4x4_d('y', -M_PI / 2.0, roty);
+        rf_refined = rf_refined * roty;
         Eigen::Vector3d new_z;
         extract_r_vector(rf_refined, new_z, 'z');
         if (new_z.dot(x) < 0) {
@@ -418,6 +496,14 @@ void refineRF(Eigen::Matrix4d& rf, Eigen::Matrix4d& rf_refined, int& target_type
             rf_refined = rf_refined * roty;
         }
 
+        double py = rf_refined(1, 3);
+
+        if (py > 0) {
+            lar_tools::rotation_matrix_4x4_d('y', vertical_object_grasp_angle, roty);
+        } else {
+            lar_tools::rotation_matrix_4x4_d('y', -vertical_object_grasp_angle, roty);
+        }
+        rf_refined = rf_refined * roty;
 
     } else {
 
@@ -433,6 +519,8 @@ void refineRF(Eigen::Matrix4d& rf, Eigen::Matrix4d& rf_refined, int& target_type
         }
 
     }
+
+
 
 }
 
@@ -465,16 +553,16 @@ void thickens_cluster(pcl::PointCloud<PointTypeColored>::Ptr& cluster_in, pcl::P
         }
     }
 
-//    pcl::UniformSampling<PointTypeColored> uniform_sampling;
-//    uniform_sampling.setInputCloud(temp_cloud);
-//    uniform_sampling.setRadiusSearch(thick_clusters_voxel_size);
-//    uniform_sampling.compute(cluster_out);
-        cluster_out->points.clear();
-        pcl::VoxelGrid<PointTypeColored> sor;
-        sor.setInputCloud(temp_cloud);
-       
-        sor.setLeafSize(thick_clusters_voxel_size,thick_clusters_voxel_size,thick_clusters_voxel_size);
-        sor.filter(*cluster_out);
+    //    pcl::UniformSampling<PointTypeColored> uniform_sampling;
+    //    uniform_sampling.setInputCloud(temp_cloud);
+    //    uniform_sampling.setRadiusSearch(thick_clusters_voxel_size);
+    //    uniform_sampling.compute(cluster_out);
+    cluster_out->points.clear();
+    pcl::VoxelGrid<PointTypeColored> sor;
+    sor.setInputCloud(temp_cloud);
+
+    sor.setLeafSize(thick_clusters_voxel_size, thick_clusters_voxel_size, thick_clusters_voxel_size);
+    sor.filter(*cluster_out);
 }
 
 /**
@@ -565,9 +653,9 @@ void correct_camera_pose(Eigen::Matrix4d& CAMERA_POSE) {
     Eigen::Matrix4d error;
     lar_tools::create_eigen_4x4_d(-(0.175 / 2.0 + 0.1), -0.05, 0.1, 0, 0.0, 0.0, error);
 
-    CAMERA_POSE(0, 3) += 0.175 / 2.0 + 0.1;
-    CAMERA_POSE(1, 3) += -0.05;
-    CAMERA_POSE(2, 3) += -0.05;
+    CAMERA_POSE(0, 3) += scene_correction_frame.x;
+    CAMERA_POSE(1, 3) += scene_correction_frame.y;
+    CAMERA_POSE(2, 3) += scene_correction_frame.z;
 
     //CAMERA_POSE = CAMERA_POSE*error;
 }
@@ -684,8 +772,14 @@ void keyboardEventOccurred(const pcl::visualization::KeyboardEvent &event,
     if (event.getKeySym() == "m" && event.keyDown()) {
         adjust_multiplier(0.1);
     }
+    if (event.getKeySym() == "k" && event.keyDown()) {
+        adjust_multiplier(1);
+    }
     if (event.getKeySym() == "n" && event.keyDown()) {
         adjust_multiplier(-0.1);
+    }
+    if (event.getKeySym() == "j" && event.keyDown()) {
+        adjust_multiplier(-1);
     }
 }
 
@@ -695,7 +789,7 @@ void keyboardEventOccurred(const pcl::visualization::KeyboardEvent &event,
 void visualize() {
     viewer->removeAllPointClouds();
     viewer->removeAllShapes();
-    
+
 
     lar_vision::Palette palette;
 
@@ -798,7 +892,14 @@ int main(int argc, char** argv) {
     nh->param<int>("thick_clusters", thick_clusters, 0);
     nh->param<int>("thick_clusters_size", thick_clusters_size, 10);
     nh->param<double>("thick_clusters_voxel_size", thick_clusters_voxel_size, 0.01);
+    
+    nh->param<double>("minimum_height_for_vertical", minimum_height_for_vertical, 0.2);
 
+    nh->param<double>("vertical_object_grasp_angle", vertical_object_grasp_angle, M_PI / 4.0);
+    nh->param<double>("minimum_endeffector_z", minimum_endeffector_z, 0.25);
+    minimum_endeffector_z = minimum_endeffector_z > HARD_Z_MINIMUM ? minimum_endeffector_z : HARD_Z_MINIMUM;
+    nh->param<double>("minimum_endeffector_z_fromtop", minimum_endeffector_z_fromtop, 0.25);
+    minimum_endeffector_z_fromtop = minimum_endeffector_z_fromtop > HARD_Z_MINIMUM_FROMTOP ? minimum_endeffector_z_fromtop : HARD_Z_MINIMUM_FROMTOP;
 
 
     /** VIEWER */
