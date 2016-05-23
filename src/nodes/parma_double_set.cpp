@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <iomanip>
 
 //ROS
 #include <ros/ros.h>
@@ -9,6 +10,7 @@
 #include <trajectory_msgs/JointTrajectoryPoint.h>
 #include <kdl/frames_io.hpp>
 #include "geometry_msgs/Pose.h"
+#include <std_msgs/UInt32.h>
 
 //OPENCV
 #include <opencv2/opencv.hpp>
@@ -27,6 +29,7 @@
 #include <pcl/features/shot_lrf.h>
 #include <pcl/filters/voxel_grid.h>
 #include <pcl/keypoints/uniform_sampling.h>
+#include <pcl/surface/convex_hull.h>
 
 //CUSTOM NODES
 #include "lar_tools.h"
@@ -44,6 +47,14 @@
 
 #define HARD_Z_MINIMUM 0.10
 #define HARD_Z_MINIMUM_FROMTOP 0.25
+
+#define EXTERNAL_COMMAND_NEXT_TARGET 10001
+#define EXTERNAL_COMMAND_PREV_TARGET 10002
+#define EXTERNAL_COMMAND_RESET_TARGET 10003
+#define EXTERNAL_COMMAND_DECREASE_WAYPOINT 10101
+#define EXTERNAL_COMMAND_INCREASE_WAYPOINT 10102
+#define EXTERNAL_COMMAND_DECREASE_WAYPOINT_ALL 10103
+#define EXTERNAL_COMMAND_INCREASE_WAYPOINT_ALL 10104
 
 using namespace std;
 
@@ -86,6 +97,7 @@ ros::Subscriber sub_cloud_2;
 ros::Subscriber sub_pose_1;
 ros::Subscriber sub_pose_2;
 ros::Publisher bonmet_target_publisher;
+ros::Subscriber external_command_subscriber;
 
 geometry_msgs::PoseStamped bonmet_target_pose;
 geometry_msgs::PoseStamped camera_1_pose;
@@ -114,17 +126,15 @@ struct SimpleFrame {
     double roll, pitch, yaw;
 };
 
-double endeffector_rotation_correction;
-
 SimpleFrame camera_optical_correction_frame;
 SimpleFrame scene_correction_frame;
-
+double min_object_distance;
+double min_area_for_tripod;
+double endeffector_rotation_correction;
 int thick_clusters = 1;
 int thick_clusters_size = 10;
 double thick_clusters_voxel_size = 0.01;
-
 double vertical_object_grasp_angle = M_PI / 4.0;
-
 double minimum_endeffector_z = 0.25;
 double minimum_endeffector_z_fromtop = 0.25;
 double minimum_height_for_vertical = 0.40;
@@ -141,14 +151,18 @@ int data_to_consume = 0;
 
 struct TargetObject {
     pcl::PointCloud<PointTypeColored>::Ptr cloud;
+    pcl::PointCloud<PointTypeColored>::Ptr base_projection;
+    
     Eigen::Vector4f centroid;
     Eigen::Vector3f centroid3;
     Eigen::Matrix4d rf;
     Eigen::Matrix4d rf_refined;
     Eigen::Matrix4d rf_approach;
     int target_type;
+    int grasp_type;
     bool valid;
-
+    double base_area;
+    
     TargetObject() {
         valid = false;
     }
@@ -164,7 +178,13 @@ struct TargetObject {
         Eigen::Matrix4d approach;
         lar_tools::create_eigen_4x4_d(0, 0, -target_approach_distance, 0, 0, 0, approach);
         rf_approach = rf_refined * approach;
-        refineRFApproach(rf_approach,target_type);
+        refineRFApproach(rf_approach, target_type);
+        base_area = getBaseArea();
+        if(base_area<min_area_for_tripod && target_type == TARGET_OBJECT_TYPE_HORIZONTAL){
+            grasp_type = GRASP_TYPE_TRIPOD;
+        }else{
+            grasp_type = GRASP_TYPE_PARALLEL;
+        }
         valid = true;
     }
 
@@ -180,6 +200,23 @@ struct TargetObject {
         }
     }
 
+    double getBaseArea() {
+        base_projection= pcl::PointCloud<PointTypeColored>::Ptr(new pcl::PointCloud<PointTypeColored>);
+        for (int i = 0; i < cloud->points.size(); i+=5) {
+            PointTypeColored p;
+            p.x = cloud->points[i].x;
+            p.y = cloud->points[i].y;
+            p.z = 0.0;
+            base_projection->points.push_back(p);
+        }
+        
+        pcl::PointCloud<PointTypeColored>::Ptr cloud_hull(new pcl::PointCloud<PointTypeColored>);
+        pcl::ConvexHull<PointTypeColored> chull;
+        chull.setInputCloud(base_projection);
+        chull.setComputeAreaVolume(true);
+        chull.reconstruct(*cloud_hull);
+        return chull.getTotalArea();
+    }
 
 };
 
@@ -290,7 +327,7 @@ void add_noise(pcl::PointCloud<PointType>::Ptr& cloud) {
  * Further controls on RF Approach
  */
 void refineRFApproach(Eigen::Matrix4d& rf_approach, int target_type) {
-    double limit=1.0;
+    double limit = 1.0;
     if (target_type == TARGET_OBJECT_TYPE_VERTICAL) {
         limit = minimum_endeffector_z;
     } else if (target_type == TARGET_OBJECT_TYPE_HORIZONTAL) {
@@ -477,10 +514,10 @@ void refineRF(Eigen::Matrix4d& rf, Eigen::Matrix4d& rf_refined, int& target_type
     double magx = rf_x.dot(z);
 
     rf_refined = rf;
-    
-    
-    
-    if (fabs(magx) > fabs(magz) && rf_refined(2,3)>=minimum_height_for_vertical) {
+
+
+
+    if (fabs(magx) > fabs(magz) && rf_refined(2, 3) >= minimum_height_for_vertical) {
 
         //OBJECT IS ORTHOGONAL TO THE GROUND
         target_type = TARGET_OBJECT_TYPE_VERTICAL;
@@ -575,7 +612,7 @@ void build_clusters() {
 
     std::vector<pcl::PointIndices> cluster_indices;
     pcl::EuclideanClusterExtraction<PointType> ec;
-    ec.setClusterTolerance(0.02);
+    ec.setClusterTolerance(min_object_distance);
     ec.setMinClusterSize(100);
     ec.setMaxClusterSize(25000);
     ec.setSearchMethod(tree2);
@@ -728,14 +765,17 @@ void build_scene() {
 /**
  * Target Object selection
  */
-void select_target(bool reset = false) {
+void select_target(int direction = 1, bool reset = false) {
 
     if (reset) {
         selected_target_index = -1;
     } else {
-        selected_target_index++;
+        selected_target_index += direction;
         if (selected_target_index > target_objects.size() - 1) {
             selected_target_index = -1;
+        }
+        if (selected_target_index < 0) {
+            selected_target_index = target_objects.size() - 1;
         }
     }
 
@@ -764,10 +804,13 @@ void adjust_multiplier(double d) {
 void keyboardEventOccurred(const pcl::visualization::KeyboardEvent &event,
         void* viewer_void) {
     if (event.getKeySym() == "a" && event.keyDown()) {
-        select_target();
+        select_target(1);
+    }
+    if (event.getKeySym() == "s" && event.keyDown()) {
+        select_target(-1);
     }
     if (event.getKeySym() == "x" && event.keyDown()) {
-        select_target(true);
+        select_target(1, true);
     }
     if (event.getKeySym() == "m" && event.keyDown()) {
         adjust_multiplier(0.1);
@@ -807,6 +850,11 @@ void visualize() {
         ss << "target_object_" << i;
         lar_vision::display_cloud(*viewer, target_objects[i].cloud, color[0], color[1], color[2], 2.0, ss.str());
         ss.str("");
+        ss << "target_object_base_" << i;
+        lar_vision::display_cloud(*viewer, target_objects[i].base_projection, color[0], color[1], color[2], 8.0, ss.str());
+        
+        
+        ss.str("");
         ss << "target_" << i;
 
 
@@ -814,6 +862,12 @@ void visualize() {
             ss << "_horizontal";
         } else if (target_objects[i].target_type == TARGET_OBJECT_TYPE_VERTICAL) {
             ss << "_vertical";
+        }
+        ss << "_"<<std::setfill('0') << std::setw(3) <<target_objects[i].base_area<<"_";
+        if(target_objects[i].grasp_type==GRASP_TYPE_PARALLEL){
+            ss<<"PA";
+        }else{
+            ss<<"TR";
         }
         lar_vision::draw_text_3D(*viewer, ss.str(), target_objects[i].centroid3, 255, 255, 255, 0.02, ss.str());
         ss << "_rf";
@@ -841,6 +895,35 @@ void endeffector_more_rotation(Eigen::Matrix4d& T) {
     Eigen::Matrix4d rot;
     lar_tools::create_eigen_4x4_d(0, 0, 0, 0, 0.0, endeffector_rotation_correction, rot);
     T = T * rot;
+}
+
+/**
+ * Parse an External Command
+ */
+void parse_command(int command) {
+    if (command == EXTERNAL_COMMAND_NEXT_TARGET) {
+        ROS_INFO("EXECUTING COMMAND: Next Target");
+        select_target(1);
+    } else if (command == EXTERNAL_COMMAND_PREV_TARGET) {
+        ROS_INFO("EXECUTING COMMAND: Prev Target");
+        select_target(1);
+    } else if (command == EXTERNAL_COMMAND_RESET_TARGET) {
+        ROS_INFO("EXECUTING COMMAND: Reset Target");
+        select_target(1, true);
+    } else if (command == EXTERNAL_COMMAND_DECREASE_WAYPOINT_ALL) {
+        ROS_INFO("EXECUTING COMMAND: Decreasing Waypoint Distance");
+        adjust_multiplier(-1);
+    } else if (command == EXTERNAL_COMMAND_INCREASE_WAYPOINT_ALL) {
+        ROS_INFO("EXECUTING COMMAND: Increasing Waypoint Distance");
+        adjust_multiplier(1);
+    }
+}
+
+/**
+ * EXternal Commands Callbacks
+ */
+void externalcommand_cb(const std_msgs::UInt32& msg) {
+    parse_command(msg.data);
 }
 
 /** MAIN NODE **/
@@ -884,6 +967,9 @@ int main(int argc, char** argv) {
     nh->param<double>("scene_correction_yaw", scene_correction_frame.yaw, 0.0);
 
 
+    nh->param<double>("min_object_distance", min_object_distance, 0.05);
+    nh->param<double>("min_area_for_tripod", min_area_for_tripod, 0.01);
+    
     nh->param<double>("noise_mag", noise_distance_mag, 0.01);
     nh->param<double>("target_approach_distance", target_approach_distance, 0.2);
     nh->param<double>("hz", hz, 100);
@@ -892,7 +978,7 @@ int main(int argc, char** argv) {
     nh->param<int>("thick_clusters", thick_clusters, 0);
     nh->param<int>("thick_clusters_size", thick_clusters_size, 10);
     nh->param<double>("thick_clusters_voxel_size", thick_clusters_voxel_size, 0.01);
-    
+
     nh->param<double>("minimum_height_for_vertical", minimum_height_for_vertical, 0.2);
 
     nh->param<double>("vertical_object_grasp_angle", vertical_object_grasp_angle, M_PI / 4.0);
@@ -935,6 +1021,7 @@ int main(int argc, char** argv) {
     sub_cloud_2 = nh->subscribe(depth_topic_2, 1, cloud_2_cb);
     sub_pose_1 = nh->subscribe(pose_topic_1, 1, pose_1_cb);
     sub_pose_2 = nh->subscribe(pose_topic_2, 1, pose_2_cb);
+    external_command_subscriber = nh->subscribe("/vision_system/external_command", 1, externalcommand_cb);
 
     bonmet_target_publisher = nh->advertise<geometry_msgs::PoseStamped>("/bonmetc60/target_ik", 1);
 

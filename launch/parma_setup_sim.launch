@@ -3,7 +3,7 @@
     <node name="parma_setup" output="screen" pkg="lar_vision" type="lar_vision_parma_double_set">
 
         <param name="depth_topic_1" value="/vrep/camera_depth_1"/>
-        <param name="depth_topic_2" value="/vrep/camera_depth_2"/>
+        <param name="depth_topic_2" value="/vrep/camera_depth_22"/>
 
         <param name="pose_topic_1" value="/vrep/camera_pose_1"/>
         <param name="pose_topic_2" value="/vrep/camera_pose_2"/>
