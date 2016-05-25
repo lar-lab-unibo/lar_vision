@@ -19,8 +19,10 @@
         <param name="bounding_box_z_min" value="0.0"/>
         <param name="bounding_box_z_max" value="0.8"/>
 
-        <param name="endeffector_rotation_correction" value="0.0"/>
-        
+        <param name="endeffector_rotation_correction" value="0.6"/>
+        <param name="minimum_endeffector_z" value="0.05"/>
+        <param name="minimum_endeffector_z_fromtop" value="0.25"/>
+
         <param name="camera_optical_correction_x" value="0.0"/>
         <param name="camera_optical_correction_y" value="0.0"/>
         <param name="camera_optical_correction_z" value="0.0"/>
@@ -34,6 +36,11 @@
         <param name="thick_clusters_size" value="10"/>
         <param name="thick_clusters_voxel_size" value="0.01"/>
 
+         <param name="minimum_height_for_vertical" value="0.08"/>
+        <param name="target_approach_distance" value="0.24"/>
+        
+        <param name="min_object_distance" value="0.09"/>
+        <param name="min_area_for_tripod" value="0.0055"/>
         
     </node>
 

@@ -11,6 +11,7 @@
 #include <kdl/frames_io.hpp>
 #include "geometry_msgs/Pose.h"
 #include <std_msgs/UInt32.h>
+#include <std_msgs/Float32MultiArray.h>
 
 //OPENCV
 #include <opencv2/opencv.hpp>
@@ -97,12 +98,13 @@ ros::Subscriber sub_cloud_2;
 ros::Subscriber sub_pose_1;
 ros::Subscriber sub_pose_2;
 ros::Publisher bonmet_target_publisher;
+ros::Publisher object_target_publisher;
 ros::Subscriber external_command_subscriber;
 
 geometry_msgs::PoseStamped bonmet_target_pose;
 geometry_msgs::PoseStamped camera_1_pose;
 geometry_msgs::PoseStamped camera_2_pose;
-
+std_msgs::Float32MultiArray targetObjectInfo;
 
 //Parameters
 
@@ -797,6 +799,39 @@ void adjust_multiplier(double d) {
 }
 
 /**
+ * builds target info message
+ * @param target
+ * @return 
+ */
+std_msgs::Float32MultiArray builds_target_info(TargetObject& target){
+    std_msgs::Float32MultiArray msg;
+    msg.data.resize(20);
+    int counter = 0;
+    msg.data[counter++] = 1;
+    for (int i = 0; i < 4; i++) {
+        for (int j = 0; j < 4; j++) {
+            msg.data[counter] = target.rf(i,j);
+            counter++;
+        }
+    }
+    msg.data[counter++] = target.target_type;
+    msg.data[counter++] = target.grasp_type;
+    msg.data[counter++] = target.base_area;
+    return msg;
+}
+
+/**
+ * 
+ * @return 
+ */
+std_msgs::Float32MultiArray builds_target_info_void(){
+     std_msgs::Float32MultiArray msg;
+    msg.data.resize(20);
+    msg.data[0] = 0;
+    return msg;
+}
+
+/**
  * 3D Viewer Kayboard callbacks
  * @param event
  * @param viewer_void
@@ -1024,7 +1059,11 @@ int main(int argc, char** argv) {
     external_command_subscriber = nh->subscribe("/vision_system/external_command", 1, externalcommand_cb);
 
     bonmet_target_publisher = nh->advertise<geometry_msgs::PoseStamped>("/bonmetc60/target_ik", 1);
-
+    
+    //Target Object Info
+    object_target_publisher = nh->advertise<std_msgs::Float32MultiArray>("/vision_system/object_target_info", 1);
+    
+    
     // Spin & Time
     ros::Rate r(hz);
     // Spin
@@ -1042,6 +1081,9 @@ int main(int argc, char** argv) {
             eigenToFrame(waypoint, target_frame);
             frameToPose(target_frame, bonmet_target_pose.pose);
             bonmet_target_publisher.publish(bonmet_target_pose);
+            object_target_publisher.publish(builds_target_info(selected_target_objects));
+        }else{
+            object_target_publisher.publish(builds_target_info_void());
         }
 
         //viewer->addPointCloud(cloud_trans_2,"cloud_2");
