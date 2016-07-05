@@ -409,7 +409,7 @@ int main(int argc, char **argv) {
                 lar_tools::eigen_4x4_d_to_tf(T_MARKER, t_marker, true);
                 //T_MARKER = T_MARKER * T_MARKER_OFFSET;
                 lar_tools::eigen_4x4_d_to_tf(T_MARKER, t_marker_offset);
-                br->sendTransform(tf::StampedTransform(t_marker_offset, ros::Time::now(), camera_frame, marker_full_name));
+                br->sendTransform(tf::StampedTransform(t_marker_offset, ros::Time::now(), "base", marker_full_name));
                 marker_pose.header.frame_id = "base";
                 lar_tools::geometrypose_to_tf(marker_pose.pose, t_marker_offset, true);
                 cartesian_publisher.publish(marker_pose);
